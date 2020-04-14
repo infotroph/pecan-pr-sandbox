@@ -72,6 +72,6 @@ cull_database_entries<-function(table = NULL, outdir, file_name = NULL, con, mac
     delete_command<-paste("DELETE from ", table_name, " where id = ", id, ";", sep="")
     PEcAn.DB::db.query(delete_command, con = con)
   }
-  write.table(log, file = paste(outdir,"/deletion_log_of_",file_name, sep = ""), row.names = FALSE)
+       write.table(log, file = paste(outdir,"/deletion_log_of_",file_name, sep = ""), row.names = FALSE)
   
 }
