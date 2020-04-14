@@ -20,7 +20,7 @@
 ##' @return dataframe with sequential treatments
 ##' @export
 ##' @author David LeBauer, Carl Davidson, Alexey Shiklomanov
-assign.treatments <- function(data){
+assign.treatments <- function(data) {
   data$trt_id[which(data$control == 1)] <- "control"
   sites <- unique(data$site_id)
   # Site IDs may be returned as `integer64`, which the `for` loop
@@ -30,7 +30,9 @@ assign.treatments <- function(data){
     ss <- sites[[si]]
     site.i <- data$site_id == ss
     #if only one treatment, it's control
-    if (length(unique(data$trt_id[site.i])) == 1) data$trt_id[site.i] <- "control"
+    if (length(unique(data$trt_id[site.i])) == 1){
+      data$trt_id[site.i] <- "control"
+    }
     if (!"control" %in% data$trt_id[site.i]){
       PEcAn.logger::logger.severe(paste0(
         "No control treatment set for site_id ", unique(data$site_id[site.i]),
