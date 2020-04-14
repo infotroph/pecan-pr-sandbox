@@ -26,7 +26,7 @@ library(PEcAn.SIPNET)
 
 ```{r fig.height=4, fig.width=6}
 foodweb(where = list("package:PEcAn.utils", "package:PEcAn.BIOCRO"), prune = c("output", "read", "results", "model2netcdf"), desc = FALSE)
-foodweb(where = list("package:PEcAn.utils", "package:PEcAn.ED2"), prune = c("output", "read", "results", "model2netcdf"), desc = FALSE)
+foodweb(where = list("package:PEcAn.utils", "package:PEcAn.ED2")    , prune = c("output", "read", "results", "model2netcdf"), desc = FALSE)
 foodweb(where = list("package:PEcAn.utils", "package:PEcAn.SIPNET"), prune = c("output", "read", "results", "model2netcdf"), desc = FALSE)
 
 ```
