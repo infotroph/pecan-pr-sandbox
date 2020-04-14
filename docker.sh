@@ -66,7 +66,7 @@ image since this image takes a long time to build. To force this image
 to be build use the DEPEND="build" environment flag, or use option -f.
 
 To set the version used of R when building the dependency image use
-the environment option R_VERSION (as well as DEPEND). You can also use
+the environment    option R_VERSION (as well as DEPEND). You can also use
 the -r option which will make sure the dependency image is build.
 
 You can use the FROM_IMAGE environment variable to also specify what
