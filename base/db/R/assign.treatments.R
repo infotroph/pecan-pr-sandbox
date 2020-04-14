@@ -7,7 +7,7 @@
 # http://opensource.ncsa.illinois.edu/license.html
 #-------------------------------------------------------------------------------
 
-##-----------------------------------------------------------------------------#
+## -----------------------------------------------------------------------------#
 ##' Change treatments to sequential integers
 ##'
 ##' Assigns all control treatments the same value, then assigns unique treatments
@@ -29,11 +29,11 @@ assign.treatments <- function(data) {
   for (si in seq_along(sites)) {
     ss <- sites[[si]]
     site.i <- data$site_id == ss
-    #if only one treatment, it's control
-    if (length(unique(data$trt_id[site.i])) == 1){
+    # if only one treatment, it's control
+    if (length(unique(data$trt_id[site.i])) == 1) {
       data$trt_id[site.i] <- "control"
     }
-    if (!"control" %in% data$trt_id[site.i]){
+    if (!"control" %in% data$trt_id[site.i]) {
       PEcAn.logger::logger.severe(paste0(
         "No control treatment set for site_id ", unique(data$site_id[site.i]),
         " and citation id ", unique(data$citation_id[site.i]), ".\n",
@@ -44,7 +44,7 @@ assign.treatments <- function(data) {
   return(data)
 }
 
-drop.columns <- function(data, columns){
+drop.columns <- function(data, columns) {
   return(data[, which(!colnames(data) %in% columns)])
 }
-##=============================================================================#
+## =============================================================================#
