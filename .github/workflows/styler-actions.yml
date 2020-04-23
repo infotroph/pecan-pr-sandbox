@@ -6,7 +6,7 @@ jobs:
   style:
     if: startsWith(github.event.comment.body, '/style')
     name: style
-    runs-on: macOS-latest
+    runs-on: macos
     steps:
       - id: file_changes
         uses: trilom/file-changes-action@v1.2.3
