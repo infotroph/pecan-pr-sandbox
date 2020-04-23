@@ -18,10 +18,10 @@ write_ed_metheader <- function(ed_metheader, filename,
     if (file.exists(prefix) && file.info(prefix)$isdir) {
       # ED doesn't treat directories specially.
       # Need to add trailing slash.
-      prefix <- paste0(prefix, "/")
+       prefix <- paste0(prefix, "/")
     }
-    block_lines[1] <- prefix
-    block_lines[2] <- paste(
+     block_lines[1] <- prefix
+     block_lines[2] <- paste(
       metformat$nlon,
       metformat$nlat,
       metformat$dx,
