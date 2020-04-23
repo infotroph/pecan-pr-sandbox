@@ -89,7 +89,7 @@ write_restart.ED2 <- function(outdir, runid, start.time, stop.time,
       # maybe in the future if we are assimilating these or if they're in the state matrix also check if it's in the var.names before nudging proportionally
       bdead    <- restart$BDEAD
       #bstorage <- restart$BSTORAGE # storage is a thing in itself
-      bleaf     <- restart$BLEAF
+        bleaf     <- restart$BLEAF
       broot     <- restart$BROOT
       balive    <- restart$BALIVE
       bseeds    <- restart$BSEEDS_CO
