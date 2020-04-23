@@ -160,7 +160,7 @@ write.config.MAAT <- function(defaults = NULL, trait.values, settings, run.id) {
   } else {
     PEcAn.logger::logger.info("*** Model mimic not selected ***")
     mod_mimic <- 'NULL'
-    xml <- PEcAn.settings::listToXml(settings$model$config, "default")
+       xml <- PEcAn.settings::listToXml(settings$model$config, "default")
   }
   
   ### Run rename and conversion function on PEcAn trait values
@@ -227,14 +227,14 @@ write.config.MAAT <- function(defaults = NULL, trait.values, settings, run.id) {
     met.file <- basename(as.character(settings$run$inputs$met$path))
     
     file.copy(file.path(met.dir, list.files(met.dir, "*.xml")), 
-              rundir, 
+               rundir, 
               overwrite = TRUE, 
               recursive = FALSE, 
               copy.mode = TRUE, 
-              copy.date = TRUE)
+               copy.date = TRUE)
     
     PEcAn.logger::logger.info("-- Met selected. Running with a met driver --")
-    PEcAn.logger::logger.info(paste0("Running with met: ",met.file))
+     PEcAn.logger::logger.info(paste0("Running with met: ",met.file))
     jobsh <- paste0("#!/bin/bash\n","Rscript ",run_maat_script," ",
                     "\"srcdir <- ","'",file.path(settings$model$binary, "src"),"'","\""," ",
                     "\"pdir <- ","'",rundir,"'","\""," ","\"mod_obj <- ","'",maat_mod_obj,"'","\""," ",
