@@ -22,7 +22,7 @@
 write.config.PRELES <- function(defaults, trait.values, settings, run.id) {
   
   # find out where to write run/ouput
-  rundir <- file.path(settings$host$rundir, run.id)
+    rundir <- file.path(settings$host$rundir, run.id)
   outdir <- file.path(settings$host$outdir, run.id)
   
   ### Define PARAMETERS
@@ -44,6 +44,6 @@ write.config.PRELES <- function(defaults, trait.values, settings, run.id) {
                   "'",settings$run$end.date,"') ",
                   '" | R --vanilla'
   )
-  writeLines(jobsh, con = file.path(settings$rundir, run.id, "job.sh"))
+     writeLines(jobsh, con = file.path(settings$rundir, run.id, "job.sh"))
   Sys.chmod(file.path(settings$rundir, run.id, "job.sh"))
 } # write.config.PRELES
