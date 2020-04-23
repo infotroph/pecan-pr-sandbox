@@ -21,7 +21,7 @@ recurse.create <- function(path, ins) {
   }
   is.dir <- dir.exists(files)  ## determine which files are actually folders
   ## create links to true files
-  curr <- files[!is.dir]
+     curr <- files[!is.dir]
   for (i in seq_along(curr)) {
     file.symlink(curr[i], file.path(path, basename(curr[i])))
   }
