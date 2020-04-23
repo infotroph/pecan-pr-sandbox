@@ -59,7 +59,7 @@ write.data2pecan.file <- function(y_starts, outdir, pecan_requested_vars, monthl
         # This is a temporary hack, till dvm-dos-tem issue is resolved...
         # See issue #336 (https://github.com/ua-snap/dvm-dos-tem/issues/336)
         original_units <- gsub("time", "year", original_units)
-        original_units <- gsub("gC", "g C", original_units)
+        original_units <-    gsub("gC", "g C", original_units)
 
         # Convert the data
         vardata_new <- PEcAn.utils::misc.convert(vardata, original_units, vmap_reverse[[j]][["newunits"]])
@@ -76,7 +76,8 @@ write.data2pecan.file <- function(y_starts, outdir, pecan_requested_vars, monthl
         starts <-c(y = px_Y, x = px_X, time = 1)
 
 
-        if (TRUE %in% sapply(monthly_dvmdostem_outputs, function(x) grepl(paste0("^",k,"_"), x))) {
+        if (TRUE %in% sapply(monthly_dvmdostem_outputs,    function(x) grepl(paste0("^",k,"_"), x))) {
+           
           # The current variable (j) is a monthly output
           counts <- c(y=1, x=1, time=12)
           startidx <- ((i-1)*12)+1
@@ -120,10 +121,10 @@ write.data2pecan.file <- function(y_starts, outdir, pecan_requested_vars, monthl
 ##'
 ##' @author Tobey Carman, Shawn Serbin
 ##'
-model2netcdf.dvmdostem <- function(outdir, runstart, runend, pecan_requested_vars) {
+model2netcdf.dvmdostem  <- function(outdir, runstart, runend, pecan_requested_vars) {
 
   PEcAn.logger::logger.info(paste0("Run start: ", runstart, " Run end: ", runend))
-  PEcAn.logger::logger.info(paste0("Processing dvmdostem outputs in: ", outdir))
+   PEcAn.logger::logger.info(paste0("Processing dvmdostem outputs in: ", outdir))
   PEcAn.logger::logger.info(paste0("Building the following PEcAn variables: ", pecan_requested_vars))
 
   # Split apart the string of pecan vars passed into the function
@@ -165,7 +166,7 @@ model2netcdf.dvmdostem <- function(outdir, runstart, runend, pecan_requested_var
   }
 
   # Get the actual pixel coords of the cell that ran
-  px <- which(run_status > 0, arr.ind = TRUE) # Returns x,y array indices
+  px <- which(run_status  > 0, arr.ind = TRUE) # Returns x,y array indices
   px_X <- px[1]
   px_Y <- px[2]
   PEcAn.logger::logger.info(paste0("Using pixel ", px_X, ", ", px_Y))
