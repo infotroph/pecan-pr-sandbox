@@ -37,11 +37,11 @@ model2netcdf.MAAT <- function(rundir, outdir, sitelat = -999, sitelon = -999, st
     }
     ## define variable
     if(is.null(newunits)) newunits = oldunits
-    newvar <- ncdf4::ncvar_def(name = newname, units = newunits, dim = ncdims, missval = missval, longname = longname)
+    newvar  <- ncdf4::ncvar_def(name = newname, units = newunits, dim = ncdims, missval = missval, longname = longname)
     ## convert data
     dat <- data
     if (newname %in% c("Year","FracJulianDay")) {
-      PEcAn.logger::logger.info(paste0("Skipping conversion for: ", newname))
+       PEcAn.logger::logger.info(paste0("Skipping conversion for: ", newname))
       dat.new <- dat
     } else {
       dat.new <- apply(as.matrix(dat, length(dat), 1), 1, f_sort)
@@ -137,7 +137,7 @@ model2netcdf.MAAT <- function(rundir, outdir, sitelat = -999, sitelon = -999, st
                            longname = "Leaf assimilation rate", ncdims = ncdims)
       output <- var_update(sub.maat.output$rd, output, "rd", "leaf_respiration", oldunits = "umol C m-2 s-1", newunits = "kg C m-2 s-1", missval = -999, 
                            longname = "Leaf Respiration Rate", ncdims = ncdims)
-      output <- var_update((1 / (sub.maat.output$rs)), output, "gs", "stomatal_conductance", oldunits = "mol H2O m-2 s-1", 
+      output    <- var_update((1 / (sub.maat.output$rs)), output, "gs", "stomatal_conductance", oldunits = "mol H2O m-2 s-1", 
                            newunits = "kg H2O m-2 s-1", missval = -999, longname = "Leaf Stomatal Conductance", ncdims = ncdims)
       output <- var_update(sub.maat.output$ci, output, "ci", "Ci", oldunits = "Pa", 
                            newunits = "Pa", missval = -999, longname = "Leaf Internal CO2 Concentration", ncdims = ncdims)
@@ -191,7 +191,7 @@ model2netcdf.MAAT <- function(rundir, outdir, sitelat = -999, sitelon = -999, st
     ncdf4::ncatt_put(ncout, "time", "bounds", "time_bounds", prec=NA)
     for (i in seq_along(output$var)) {
       #print(i)  # for debugging
-      ncdf4::ncvar_put(ncout, output$var[[i]], output$dat[[i]])
+        ncdf4::ncvar_put(ncout, output$var[[i]], output$dat[[i]])
     }
     
     ## extract variable and long names to VAR file for PEcAn vis
