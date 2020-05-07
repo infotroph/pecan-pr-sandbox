@@ -76,13 +76,18 @@ debugifnot <- function(msg, ...) {
 #' Check a list of conditions
 check_conditions <- function(...) {
   dots <- list(...)
-  conditions <- vapply(dots, is_definitely_true, logical(1))
+  conditions <- vapply(
+    dots,
+    is_definitely_true,
+    logical(1))
   all(conditions)
 }
 
 #' Robust logical check
 is_definitely_true <- function(x) {
-  if (is.null(x) || length(x) == 0 || !is.logical(x)) {
+  if (is.null(x)
+      || length(x) == 0
+      || !is.logical(x)) {
     return(FALSE)
   }
   isTRUE(all(x))
