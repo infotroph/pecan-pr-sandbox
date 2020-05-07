@@ -23,6 +23,8 @@ For more information about this file see also [Keep a Changelog](http://keepacha
 - Update ED docker build, will now build version 2.2.0 and git
 
 ### Changed
+- Continuous integration changes: Added experimental GitHub Actions CI builds (#2544), streamlined Travis CI builds, added a fourth R version (second-newest old release; currently R 3.5) to Travis test matrix (#2592).
+- Functions that update database entries no longer pass `created_at` or `updated_at` timestamps. The database now updates these itself and ensures they are consistently in UTC (#1083).
 - `PEcAn.DB::insert_table` now uses `DBI::dbAppendTable` internally instead of manually constructed SQL (#2552).
 - Rebuilt documentation using Roxygen 7. Readers get nicer formatting of usage sections, writers get more flexible behavior when inheriting parameters and less hassle when maintaining namespaces (#2524).
 - Renamed functions that looked like S3 methods but were not:
@@ -34,12 +36,15 @@ For more information about this file see also [Keep a Changelog](http://keepacha
 - PEcAn.JULES: Removed dependency on `ncdf4.helpers` package, which has been removed from CRAN (#2511).
 
 ### Added
+- model_info.json and Dockerfile to template (#2567)
+- Dockerize BASGRA_N model.
 - Basic coupling for models BASGRA_N and STICS.
 - PEcAn.priors now exports functions `priorfig` and `plot_densities` (#2439).
 - Models monitoring container for Docker now shows a webpage with models it has seen
 - Added small container to check if certain services are up, used as initi container for kubernetes
 - Documentation how to run ED using singularity
 - PEcAn.DB gains new function `get_postgres_envvars`, which tries to look up connection parameters from Postgres environment variables (if they are set) and return them as a list ready to be passed to `db.open`. It should be especially useful when writing tests that need to run on systems with many different database configurations (#2541).
+- New shiny application to show database synchronization status (shiny/dbsync)
 
 ### Removed
 - Database maintenance scripts `vacuum.bety.sh` and `reindex.bety.sh` have been moved to the [BeTY database repository](https://github.com/PecanProject/bety) (#2563).
