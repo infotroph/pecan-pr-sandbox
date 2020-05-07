@@ -195,7 +195,7 @@ model2netcdf.MAAT <- function(rundir, outdir, sitelat = -999, sitelon = -999, st
     }
     
     ## extract variable and long names to VAR file for PEcAn vis
-    utils::write.table(sapply(ncout$var, function(x) { x$longname }), 
+         utils::write.table(sapply(ncout$var, function(x) { x$longname }), 
                 file = file.path(outdir, paste(year, "nc.var", sep = ".")), 
                 col.names = FALSE, 
                 row.names = TRUE, 
