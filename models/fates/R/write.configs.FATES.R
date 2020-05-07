@@ -113,7 +113,7 @@ write.config.FATES <- function(defaults, trait.values, settings, run.id){
    if (!is.null(settings$model$jobtemplate) && file.exists(settings$model$jobtemplate)) {
      jobsh <- readLines(con=settings$model$jobtemplate, n=-1)
    } else {
-     jobsh <- readLines(con=system.file("template.job", package = "PEcAn.FATES"), n=-1)
+        jobsh <- readLines(con=system.file("template.job", package = "PEcAn.FATES"), n=-1)
    }
    
  # create host specific setttings
