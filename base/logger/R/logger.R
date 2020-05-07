@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2012 University of Illinois, NCSA.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the 
+# are made available under the terms of the
 # University of Illinois/NCSA Open Source License
 # which accompanies this distribution, and is available at
 # http://opensource.ncsa.illinois.edu/license.html
@@ -13,12 +13,12 @@
 .utils.logger$stderr <- TRUE
 .utils.logger$quit <- FALSE
 .utils.logger$level <- 0
-.utils.logger$width <- ifelse(getOption("width") < 10, 
-                              getOption("width"), 
+.utils.logger$width <- ifelse(getOption("width") < 10,
+                              getOption("width"),
                               getOption("width") - 5)
 
 ##' Prints a debug message.
-##' 
+##'
 ##' This function will print a debug message.
 ##'
 ##' @param msg the message that should be printed.
@@ -35,7 +35,7 @@ logger.debug <- function(msg, ...) {
 
 
 ##' Prints an informational message.
-##' 
+##'
 ##' This function will print an informational message.
 ##'
 ##' @param msg the message that should be printed.
