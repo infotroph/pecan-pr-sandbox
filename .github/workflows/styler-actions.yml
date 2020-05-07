@@ -6,7 +6,7 @@ jobs:
   style:
     if: startsWith(github.event.comment.body, '/style')
     name: style
-    runs-on: macos
+    runs-on: macOS-latest
     steps:
       - id: file_changes
         uses: trilom/file-changes-action@v1.2.3
@@ -39,12 +39,13 @@ jobs:
       - name: commit
         run: |
           git add \*.R
+          git add \*.Rmd
           git commit -m 'Style'
       - uses: r-lib/actions/pr-push@master
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          
-          
+
+
   check:
     needs: [style]
     runs-on: ubuntu-latest
@@ -83,18 +84,10 @@ jobs:
           for i in $(cat uniq.txt); do make .doc/${i}; done
       - name: commit
         run: |
-          git config --global user.email "rahulagrawal799110@gmail.com"
-          git config --global user.name "Rahul Agrawal"
+          git config --global user.email "pecan_bot@example.com"
+          git config --global user.name "PEcAn stylebot"
           git add \*.Rd
           git commit -m 'make'
       - uses: r-lib/actions/pr-push@master
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-            
-                    
-  # A mock job just to ensure we have a successful build status
-  finish:
-    needs: [check]
-    runs-on: ubuntu-latest
-    steps:
-      - run: true
