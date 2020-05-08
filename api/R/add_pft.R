@@ -1,5 +1,4 @@
 #' Add a PFT or list of PFTs to a settings object
-#'
 #' @param settings Input PEcAn settings list
 #' @param name PFT name (character)
 #' @param pfts Either a character vector of PFT names, or a list of
