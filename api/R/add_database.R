@@ -1,5 +1,4 @@
 #' Add PEcAn database information to settings list
-#'
 #' @param settings Input settings list (list)
 #' @param host Database server hostname (character, default = `pecanapi.db_hostname`)
 #' @param user Database user name (character, default = option `pecanapi.db_username`))
