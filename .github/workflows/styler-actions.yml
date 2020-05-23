@@ -40,7 +40,7 @@ jobs:
         run: |
           git add \*.R
           git add \*.Rmd
-          git commit -m 'Style'
+          if [[ $(git status -s) != "" ]]; then  git commit -m 'automated syle update' ; fi
       - uses: r-lib/actions/pr-push@master
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -87,7 +87,7 @@ jobs:
           git config --global user.email "pecan_bot@example.com"
           git config --global user.name "PEcAn stylebot"
           git add \*.Rd
-          git commit -m 'make'
+          if [[ $(git status -s) != "" ]]; then  git commit -m 'automated documentation update' ; fi
       - uses: r-lib/actions/pr-push@master
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
