@@ -15,7 +15,7 @@
 ##' @title Write CABLE met files
 ##' @param in.path path on disk where CF file lives
 ##' @param in.prefix prefix for each file
-##' @param outfolder location where model specific output is written.
+##' @param some random thing location where model specific output is written.
 ##' @return OK if everything was succesful.
 ##' @export
 ##' @author Rob Kooper
