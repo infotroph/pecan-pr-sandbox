@@ -7,6 +7,9 @@ if [ -z "$FQDN" ]; then
 	FQDN=$( hostname -f )
 fi
 
+
+
+
 # postgres hostname
 if [ -z "$PGHOST" ]; then
   PGHOST="localhost"
