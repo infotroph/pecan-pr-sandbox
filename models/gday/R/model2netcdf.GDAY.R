@@ -24,6 +24,8 @@
 
 model2netcdf.GDAY <- function(outdir, sitelat, sitelon, start_date, end_date) {
   
+  
+  
 
   G_2_KG <- 0.001
   TONNES_PER_HA_TO_G_M2 <- 100
@@ -35,7 +37,7 @@ model2netcdf.GDAY <- function(outdir, sitelat, sitelon, start_date, end_date) {
   
   ### Determine number of years and output timestep
   days <- as.Date(start_date):as.Date(end_date)
-  year <- strftime(as.Date(days, origin = "1970-01-01"), "%Y")
+    year <- strftime(as.Date(days, origin = "1970-01-01"), "%Y")
   num.years <- length(unique(year))
   years <- unique(year)
   timestep.s <- 86400
