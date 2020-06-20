@@ -7,6 +7,8 @@
 # http://opensource.ncsa.illinois.edu/license.html
 #-------------------------------------------------------------------------------
 
+
+
 ##-------------------------------------------------------------------------------------------------#
 ##' Convert CABLE output into the NACP Intercomparison format (ALMA using netCDF)
 ##' 
@@ -21,6 +23,7 @@
 ##' @export
 ##'
 ##' @author Rob Kooper
+
 model2netcdf.CABLE <- function(outdir, sitelat, sitelon, start_date, end_date) {
   PEcAn.logger::logger.severe("NOT IMPLEMENTED")
 
