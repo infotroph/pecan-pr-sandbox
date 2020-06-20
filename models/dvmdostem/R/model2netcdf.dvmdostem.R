@@ -24,6 +24,7 @@ write.data2pecan.file <- function(y_starts, outdir, pecan_requested_vars, monthl
   # Looping over the dvmdostem ouputs and writing data into the
   # the respective yearly PEcAn output files.
   for (i in seq_along(1:length(y_starts))) {
+    
     ncout <- ncdf4::nc_open(file.path(outdir, paste0(lubridate::year(y_starts[i]), ".nc")), write = TRUE)
     for (j in pecan_requested_vars) {
 
