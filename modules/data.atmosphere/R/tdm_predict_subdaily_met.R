@@ -137,17 +137,17 @@ predict_subdaily_met <- function(outfolder, in.path, in.prefix, path.train, dire
   precip.dist <- list()
   precip.dist$hrs.rain <- list()
   precip.dist$hrs.max <- list()
-  for(i in 1:366){
+  for (i in 1:366) {
     precip.dist$hrs.rain[[i]] <- vector()
     precip.dist$hrs.max[[i]] <- vector()
   }
-  for(i in 1:length(files.train)){
+  for (i in 1:length(files.train)) {
     nday <- ifelse(lubridate::leap_year(yrs.file[i]), 366, 365)
-    
+   
     ncT <- ncdf4::nc_open(file.path(path.train, files.train[i]))
     precip.hr <- ncdf4::ncvar_get(ncT, "precipitation_flux")
     ncdf4::nc_close(ncT)
-    
+   
     obs.day <- round(length(precip.hr)/nday)
     # Setting up precip as a list to make doing
     precip.temp <- list()
