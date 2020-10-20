@@ -26,15 +26,15 @@
 model.train <- function(dat.subset, v, n.beta, resids = resids, threshold = NULL, ...) {
   dat.subset$year <- as.ordered(dat.subset$year) 
   if (v == "air_temperature") {
-    
-    mod.doy <- lm(air_temperature ~ as.ordered(hour) * air_temperature_max.day * 
-                    (lag.air_temperature + lag.air_temperature_min + air_temperature_min.day) + 
-                    as.ordered(hour) * air_temperature_min.day * next.air_temperature_max - 
-                    1 - as.ordered(hour) - lag.air_temperature - lag.air_temperature_min - 
-                    next.air_temperature_max - air_temperature_max.day - 
+
+    mod.doy <- lm(air_temperature ~ as.ordered(hour) * air_temperature_max.day *
+                    (lag.air_temperature + lag.air_temperature_min + air_temperature_min.day) +
+                    as.ordered(hour) * air_temperature_min.day * next.air_temperature_max -
+                    1 - as.ordered(hour) - lag.air_temperature - lag.air_temperature_min -
+                    next.air_temperature_max - air_temperature_max.day -
                     air_temperature_min.day, data = dat.subset)  #
   }
-  
+
   if (v == "surface_downwelling_shortwave_flux_in_air") {
     # Don't bother trying to fit hours that are completely or pretty darn
     # close to dark

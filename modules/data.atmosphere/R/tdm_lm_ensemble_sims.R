@@ -121,6 +121,8 @@ lm_ensemble_sims <- function(dat.mod, n.ens, path.model, direction.filter, lags.
 
     # fill our dat.sim list
     dat.sim[[v]] <- data.frame(array(dim = c(nrow(dat.mod), n.ens)))
+
+    # a test
     
     # --------------------------------
     # Looping through time

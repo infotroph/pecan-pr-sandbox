@@ -64,21 +64,23 @@ subdaily_pred <- function(newdata, model.predict, Rbeta, resid.err = FALSE, mode
   
   	model.resid$factors[model.resid$factors=="as.ordered(hour)"] <- "hour"
 	  resid.m  <- newdata[,model.resid$factors]
-	  resid.m[,"as.ordered(hour)"] <- resid.m$hour
-  	if(length(df.hr$hour)!= length(resid.m$hour)) resid.m <- merge(resid.m, df.hr, all=T)
-    Xp.res <- model.matrix(eval(model.resid$formula), resid.m, contrasts.arg=model.resid$contr)
+	  resid.m[, "as.ordered(hour)"] <- resid.m$hour
+  	if (length(df.hr$hour) != length(resid.m$hour)) {
+      resid.m <- merge(resid.m, df.hr, all = TRUE)
+    }
+    Xp.res <- model.matrix(
+      eval(model.resid$formula),
+      resid.m,
+      contrasts.arg = model.resid$contr)
     err.resid <- Xp.res[, resid.piv] %*% t(Rbeta.resid)
   } # End residual error
-  
-  if(length(piv)==ncol(Rbeta)){
+
+  if (length(piv) == ncol(Rbeta)) {
     dat.sim <- Xp[, piv] %*% t(Rbeta) + err.resid
   } else {
     # dat.sim <- Xp[,piv] %*% t(Rbeta[,piv]) + err.resid
-    dat.sim <- Xp[,piv] %*% t(matrix(Rbeta[,piv], nrow=nrow(Rbeta))) + err.resid
+    dat.sim <- Xp[, piv] %*% t(matrix(Rbeta[, piv], nrow = nrow(Rbeta))) + err.resid
   }
-  
-  
-  
+
   return(dat.sim)
-  
 }
