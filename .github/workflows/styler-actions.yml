@@ -24,7 +24,7 @@ jobs:
       - name: string operations
         shell: bash
         run: |
-          for i in ${{ join(steps.file_changes.outputs.files_modified, " ") }}; do;
+          for i in ${{ join(steps.file_changes.outputs.files_modified, ' ') }}; do;
             if [[ "$i" == *.R\" || "$i" == *.Rmd\" ]];
               then Rscript -e "styler::style_file("$i")";
             fi;
