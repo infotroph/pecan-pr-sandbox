@@ -18,36 +18,35 @@
 ##'
 ##' @export
 ##'
-find_formats_without_inputs <- function(con, user_id_code = NULL, created_after = NULL, updated_after = NULL, created_before = NULL, updated_before = NULL){
+find_formats_without_inputs <- function(con, user_id_code = NULL, created_after = NULL, updated_after = NULL, created_before = NULL, updated_before = NULL) {
+  input_command <- dplyr::tbl(con, "inputs")
 
-  input_command<-dplyr::tbl(con, 'inputs')
-  
-  format_command<-dplyr::tbl(con, 'formats')
-  
-  if(!is.null(user_id_code)){
-    format_command<-dplyr::filter(format_command, user_id == !!user_id_code)
+  format_command <- dplyr::tbl(con, "formats")
+
+  if (!is.null(user_id_code)) {
+    format_command <- dplyr::filter(format_command, user_id == !!user_id_code)
   }
-  if(!is.null(created_before)){
-    format_command<-dplyr::filter(format_command,created_at < !!created_before)  
+  if (!is.null(created_before)) {
+    format_command <- dplyr::filter(format_command, created_at < !!created_before)
   }
-  if(!is.null(created_after)){
-    format_command<-dplyr::filter(format_command,created_at > !!created_after)
+  if (!is.null(created_after)) {
+    format_command <- dplyr::filter(format_command, created_at > !!created_after)
   }
-  if(!is.null(updated_before)){
-    format_command<-dplyr::filter(format_command, updated_at < !!updated_before)
+  if (!is.null(updated_before)) {
+    format_command <- dplyr::filter(format_command, updated_at < !!updated_before)
   }
-  if(!is.null(updated_after)){
-    format_command<-dplyr::filter(format_command, updated_at > !!updated_after)
+  if (!is.null(updated_after)) {
+    format_command <- dplyr::filter(format_command, updated_at > !!updated_after)
   }
-  
-  format_command<-as.data.frame(format_command)
-  input_command<-as.data.frame(input_command)
-  
-  colnames(format_command)[1]<-"format_id"
-  formats_without_inputs<-dplyr::anti_join(format_command, input_command, by = "format_id")
-  colnames(formats_without_inputs)[1]<-"id"
-  
-  formats_without_inputs$table_name<-rep("formats", length.out= length(formats_without_inputs[,1]))
-  
-  return(formats_without_inputs) 
+
+  format_command <- as.data.frame(format_command)
+  input_command <- as.data.frame(input_command)
+
+  colnames(format_command)[1] <- "format_id"
+  formats_without_inputs <- dplyr::anti_join(format_command, input_command, by = "format_id")
+  colnames(formats_without_inputs)[1] <- "id"
+
+  formats_without_inputs$table_name <- rep("formats", length.out = length(formats_without_inputs[, 1]))
+
+  return(formats_without_inputs)
 }
