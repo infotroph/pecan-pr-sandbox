@@ -128,8 +128,10 @@ clean:
 	echo `date` > $@
 
 .install/roxygen2: | .install
-	+ ./scripts/time.sh "roxygen2 ${1}" Rscript -e ${SETROPTIONS} -e "if(!requireNamespace('roxygen2', quietly = TRUE)) install.packages('roxygen2')"
+	+ ./scripts/time.sh "roxygen2 ${1}" Rscript -e ${SETROPTIONS} -e "install.packages('roxygen2')"
 	echo `date` > $@
+
+#+ ./scripts/time.sh "roxygen2 ${1}" Rscript -e ${SETROPTIONS} -e "if(!requireNamespace('roxygen2', quietly = TRUE)) install.packages('roxygen2')"
 
 .install/testthat: | .install
 	+ ./scripts/time.sh "testthat ${1}" Rscript -e ${SETROPTIONS} -e "if(!requireNamespace('testthat', quietly = TRUE)) install.packages('testthat')"
