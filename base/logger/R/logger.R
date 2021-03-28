@@ -20,7 +20,7 @@
 ##' Prints a debug message.
 ##' 
 ##' This function will print a debug message.
-##' This is a test change to check CI behavior.
+##' This is a test change to check CI behavior;
 ##' It should not be merged into mainline PEcAn.
 ##'
 ##' @param msg the message that should be printed.
