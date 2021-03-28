@@ -54,10 +54,11 @@ jobs:
       - id: file_changes
         uses: trilom/file-changes-action@v1.2.3
       - id: doc_all
+        name: check whether documenting all packages or only changed ones
         if: startsWith(github.event.comment.body, '/document all_packages')
         shell: bash
         run: |
-          DESCS=$(find . -name DESCRIPTION | tr '\n' ' ')
+          DESCS=$(find * -name DESCRIPTION | tr '\n' ' ')
           echo "::set-output name=descriptions::${DESCS}"
       - name : make
         shell: bash
