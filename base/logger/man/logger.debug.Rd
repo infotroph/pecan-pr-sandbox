@@ -13,7 +13,7 @@ logger.debug(msg, ...)
 }
 \description{
 This function will print a debug message.
-This is a test change to check CI behavior.
+This is a test change to check CI behavior;
 It should not be merged into mainline PEcAn.
 }
 \examples{
