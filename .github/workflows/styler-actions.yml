@@ -1,17 +1,18 @@
 on:
   issue_comment:
     types: [created]
-name: Commands
+name: Commands in PR comments
 jobs:
   style:
     if: startsWith(github.event.comment.body, '/style')
     name: style
     runs-on: macOS-latest
     steps:
-      - id: file_changes
-        uses: trilom/file-changes-action@v1.2.4
-      - name: list changed files
-        run: echo '${{ steps.file_changes.outputs.files_modified }}'
+      - name: Add reaction
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ github.event.comment.id }}
+          reactions: eyes
       - name: work around https://github.com/actions/checkout/issues/766
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: actions/checkout@v4
@@ -20,6 +21,12 @@ jobs:
       - uses: r-lib/actions/pr-fetch@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - id: file_changes
+        uses: tj-actions/changed-files@v44
+        with:
+          files: '**/*.{R, Rmd}'
+      - name: list changed files
+        run: echo '${{ steps.file_changes.outputs.all_changed_files }}'
       - uses: r-lib/actions/setup-r@v2
       - name: Install styler
         run: |
@@ -27,12 +34,10 @@ jobs:
       - name: run styler
         shell: bash
         env:
-          FILES: ${{ join(fromJSON(steps.file_changes.outputs.files_modified), ' ') }}
+          FILES: ${{ steps.file_changes.outputs.all_changed_files }}
         run: |
           for f in ${FILES}; do
-            if [[ "$f" == *.R || "$f" == *.Rmd ]]
-              then Rscript -e 'styler::style_file("'${f}'")'
-            fi
+            Rscript -e 'styler::style_file("'${f}'")'
           done
       - name: commit
         run: |
@@ -42,7 +47,12 @@ jobs:
       - uses: r-lib/actions/pr-push@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-
+      - name: mark complete
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ github.event.comment.id }}
+          reactions: '+1'
+          reactions-edit-mode: replace
 
   document:
     if: (startsWith(github.event.comment.body, '/style') || startsWith(github.event.comment.body, '/document'))
@@ -54,7 +64,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           set-safe-directory: false
-      - uses: r-lib/actions/pr-fetch@v1
+      - uses: r-lib/actions/pr-fetch@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: update dependency lists
@@ -65,11 +75,11 @@ jobs:
         working-directory: docker/depends
         run: Rscript pecan.depends.R
       - id: file_changes
-        uses: trilom/file-changes-action@v1.2.4
+        uses: tj-actions/changed-files@v44
       - name : make
         shell: bash
         env:
-          FILES: ${{ join(fromJSON(steps.file_changes.outputs.files_modified), ' ') }}
+          FILES: ${{ steps.file_changes.outputs.all_changed_files }}
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo ${FILES} \
@@ -83,8 +93,8 @@ jobs:
         run: |
           git config --global user.email "pecan_bot@example.com"
           git config --global user.name "PEcAn stylebot"
-          git add \*.Rd \*NAMESPACE Makefile.depends docker/depends/pecan_package_dependencies.R docker/depends/pecan_deps_from_github.txt
+          git add \*.Rd \*NAMESPACE Makefile.depends docker/depends/pecan_package_dependencies.csv docker/depends/pecan_deps_from_github.txt
           if [ "$(git diff --name-only --cached)" != "" ]; then  git commit -m 'automated documentation update' ; fi
-      - uses: r-lib/actions/pr-push@master
+      - uses: r-lib/actions/pr-push@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
