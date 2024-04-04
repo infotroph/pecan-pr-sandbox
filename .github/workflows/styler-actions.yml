@@ -8,6 +8,11 @@ jobs:
     name: style
     runs-on: macOS-latest
     steps:
+      - name: Add reaction
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ github.event.comment.id }}
+          reactions: eyes
       - id: file_changes
         uses: trilom/file-changes-action@v1.2.4
       - name: list changed files
@@ -42,7 +47,12 @@ jobs:
       - uses: r-lib/actions/pr-push@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-
+      - name: mark complete
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ github.event.comment.id }}
+          reactions: '+1'
+          reactions-edit-mode: replace
 
   document:
     if: (startsWith(github.event.comment.body, '/style') || startsWith(github.event.comment.body, '/document'))
