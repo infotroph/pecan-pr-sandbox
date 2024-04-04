@@ -1,7 +1,7 @@
 on:
   issue_comment:
     types: [created]
-name: Commands
+name: Commands in PR comments
 jobs:
   style:
     if: startsWith(github.event.comment.body, '/style')
