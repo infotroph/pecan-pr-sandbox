@@ -14,9 +14,11 @@ jobs:
           comment-id: ${{ github.event.comment.id }}
           reactions: eyes
       - id: file_changes
-        uses: trilom/file-changes-action@v1.2.4
+        uses: tj-actions/changed-files@v44
+        with:
+          files: '**/*.{R, Rmd}'
       - name: list changed files
-        run: echo '${{ steps.file_changes.outputs.files_modified }}'
+        run: echo '${{ steps.file_changes.outputs.all_changed_files }}'
       - name: work around https://github.com/actions/checkout/issues/766
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - uses: actions/checkout@v4
@@ -32,12 +34,10 @@ jobs:
       - name: run styler
         shell: bash
         env:
-          FILES: ${{ join(fromJSON(steps.file_changes.outputs.files_modified), ' ') }}
+          FILES: ${{ steps.file_changes.outputs.all_changed_files }}
         run: |
           for f in ${FILES}; do
-            if [[ "$f" == *.R || "$f" == *.Rmd ]]
-              then Rscript -e 'styler::style_file("'${f}'")'
-            fi
+            Rscript -e 'styler::style_file("'${f}'")'
           done
       - name: commit
         run: |
@@ -75,11 +75,11 @@ jobs:
         working-directory: docker/depends
         run: Rscript pecan.depends.R
       - id: file_changes
-        uses: trilom/file-changes-action@v1.2.4
+        uses: tj-actions/changed-files@v44
       - name : make
         shell: bash
         env:
-          FILES: ${{ join(fromJSON(steps.file_changes.outputs.files_modified), ' ') }}
+          FILES: ${{ steps.file_changes.outputs.all_changed_files }}
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo ${FILES} \
