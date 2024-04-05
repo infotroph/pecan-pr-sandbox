@@ -67,8 +67,6 @@ jobs:
       - uses: r-lib/actions/pr-fetch@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: r-lib/actions/setup-r@v2
-      - run: Rscript -e 'install.packages(c("desc", "purrr", "dplyr"))'
       - name: update dependency lists
         run: Rscript scripts/generate_dependencies.R
       - name: install any new dependencies
