@@ -2,14 +2,14 @@
 % Please edit documentation in R/write.config.utils.R
 \name{get.sa.sample.list}
 \alias{get.sa.sample.list}
-\title{get.sa.sample.list}
+\title{get sensitivity samples as a list}
 \usage{
 get.sa.sample.list(pft, env, quantiles)
 }
 \arguments{
-\item{pft}{Plant Functional Type}
+\item{pft}{list of samples from Plant Functional Types}
 
-\item{env}{}
+\item{env}{list of samples from environment parameters}
 
 \item{quantiles}{quantiles at which to obtain samples from parameter for
 sensitivity analysis}

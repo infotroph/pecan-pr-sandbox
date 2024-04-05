@@ -6,7 +6,9 @@
 #' @param forecast_date date for forecast
 #' @param model_name_raw model name for directory creation
 #' @param end_hr end hr to determine how many hours to download
-#' @param output_directory output directory 
+#' @param output_directory output directory
+#' 
+#' @export
 #'
 #' @return NA
 #'
@@ -141,7 +143,8 @@ noaa_grid_download <- function(lat_list, lon_list, forecast_time, forecast_date,
         print(paste("Downloading", forecast_date, cycle))
         
         if(cycle == "00"){
-          hours <- c(seq(0, 240, 3),seq(246, min(end_hr, 384), 6))
+          hours <- c(seq(0, 240, 3),seq(246, 384, 6))
+          hours <- hours[hours<=end_hr]
         }else{
           hours <- c(seq(0, 240, 3),seq(246, min(end_hr, 840) , 6))
         }
@@ -188,6 +191,8 @@ noaa_grid_download <- function(lat_list, lon_list, forecast_time, forecast_date,
 #' @param model_name_raw Name of raw file name
 #' @param output_directory Output directory 
 #' @importFrom rlang .data 
+#' 
+#' @export
 #' @return List
 #'
 #'
@@ -238,25 +243,30 @@ process_gridded_noaa_download <- function(lat_list,
     
     for(hr in 1:length(curr_hours)){
       file_name <- paste0(base_filename2, curr_hours[hr])
+      grib_file_name <- paste0(working_directory,"/", file_name,".grib")
       
-      if(file.exists(paste0(working_directory,"/", file_name,".grib"))){
-        grib <- rgdal::readGDAL(paste0(working_directory,"/", file_name,".grib"), silent = TRUE)
-        lat_lon <- sp::coordinates(grib)
+      if(file.exists(grib_file_name)){
+        grib_data <- terra::rast(grib_file_name)
+        
+        ## Convert to data frame
+        grib_data_df <- terra::as.data.frame(grib_data, xy=TRUE)
+        lat_lon <- grib_data_df[, c("x", "y")]
+        
         for(s in 1:length(site_id)){
           
           index <- which(lat_lon[,2] == lats[s] & lat_lon[,1] == lons[s])
           
-          pressfc[s, hr]  <- grib$band1[index]
-          tmp2m[s, hr] <- grib$band2[index]
-          rh2m[s, hr]  <- grib$band3[index]
-          ugrd10m[s, hr]  <- grib$band4[index]
-          vgrd10m[s, hr]  <- grib$band5[index]
+          pressfc[s, hr]  <- grib_data_df$`SFC=Ground or water surface; Pressure [Pa]`[index]
+          tmp2m[s, hr]    <- grib_data_df$`2[m] HTGL=Specified height level above ground; Temperature [C]`[index]
+          rh2m[s, hr]     <- grib_data_df$`2[m] HTGL=Specified height level above ground; Relative humidity [%]`[index]
+          ugrd10m[s, hr]  <- grib_data_df$`10[m] HTGL=Specified height level above ground; u-component of wind [m/s]`[index]
+          vgrd10m[s, hr]  <- grib_data_df$`10[m] HTGL=Specified height level above ground; v-component of wind [m/s]`[index]
           
           if(curr_hours[hr] != "000"){
-            apcpsfc[s, hr]  <- grib$band6[index]
-            tcdcclm[s, hr]  <-  grib$band7[index]
-            dswrfsfc[s, hr]  <- grib$band8[index]
-            dlwrfsfc[s, hr]  <- grib$band9[index]
+            apcpsfc[s, hr]  <- grib_data_df$`SFC=Ground or water surface; 03 hr Total precipitation [kg/(m^2)]`[index]
+            tcdcclm[s, hr]  <- grib_data_df$`RESERVED(10) (Reserved); Total cloud cover [%]`[index]
+            dswrfsfc[s, hr] <- grib_data_df$`SFC=Ground or water surface; Downward Short-Wave Rad. Flux [W/(m^2)]`[index]
+            dlwrfsfc[s, hr] <- grib_data_df$`SFC=Ground or water surface; Downward Long-Wave Rad. Flux [W/(m^2)]`[index]
           }
         }
       }
@@ -481,7 +491,10 @@ process_gridded_noaa_download <- function(lat_list,
       
       
       #Write netCDF
-      write_noaa_gefs_netcdf(df = forecast_noaa_ens,ens, lat = lat_list[1], lon = lon_east, cf_units = cf_var_units1, output_file = output_file, overwrite = TRUE)
+      if(!nrow(forecast_noaa_ens) == 0){      
+        write_noaa_gefs_netcdf(df = forecast_noaa_ens,ens, lat = lat_list[1], lon = lon_east, cf_units = cf_var_units1, output_file = output_file, overwrite = TRUE)
+      }else {results_list[[ens]] <- NULL 
+      next}
       
       if(downscale){
         #Downscale the forecast from 6hr to 1hr
@@ -502,12 +515,13 @@ process_gridded_noaa_download <- function(lat_list,
         results_list[[ens]] <- results
         
         #Run downscaling
-        temporal_downscale(input_file = output_file, output_file = output_file_ds, overwrite = TRUE, hr = 1)
+        temporal_downscale_half_hour(input_file = output_file, output_file = output_file_ds, overwrite = TRUE, hr = 1)
       }
       
       
     }
   }
+  results_list <- results_list[!sapply(results_list, is.null)]
   return(results_list)
 } #process_gridded_noaa_download
 
@@ -519,7 +533,7 @@ process_gridded_noaa_download <- function(lat_list,
 #' @param overwrite, logical stating to overwrite any existing output_file
 #' @param hr time step in hours of temporal downscaling (default = 1)
 #' @importFrom rlang .data 
-#' @import tidyselect
+#' 
 #' @author Quinn Thomas
 #'
 #'
@@ -616,22 +630,23 @@ temporal_downscale <- function(input_file, output_file, overwrite = TRUE, hr = 1
   
   #Make sure var names are in correct order
   forecast_noaa_ds <- forecast_noaa_ds %>%
-    dplyr::select(.data$time, tidyselect::all_of(cf_var_names), .data$NOAA.member)
+    dplyr::select("time", tidyselect::all_of(cf_var_names), "NOAA.member")
   
   #Write netCDF
   write_noaa_gefs_netcdf(df = forecast_noaa_ds,
-                                        ens = ens,
-                                        lat = lat.in,
-                                        lon = lon.in,
-                                        cf_units = var_units,
-                                        output_file = output_file,
-                                        overwrite = overwrite)
+                         ens = ens,
+                         lat = lat.in,
+                         lon = lon.in,
+                         cf_units = var_units,
+                         output_file = output_file,
+                         overwrite = overwrite)
   
 } #temporal_downscale
 
 
 
 ##' @title Write NOAA GEFS netCDF
+##' @name write_noaa_gefs_netcdf
 ##' @param df data frame of meterological variables to be written to netcdf.  Columns
 ##' must start with time with the following columns in the order of `cf_units`
 ##' @param ens ensemble index used for subsetting df
@@ -640,9 +655,10 @@ temporal_downscale <- function(input_file, output_file, overwrite = TRUE, hr = 1
 ##' @param cf_units vector of variable names in order they appear in df
 ##' @param output_file name, with full path, of the netcdf file that is generated
 ##' @param overwrite logical to overwrite existing netcdf file
+##' 
 ##' @return NA
-##'
-##'
+##' @export
+##' 
 ##' @author Quinn Thomas
 ##'
 ##'

@@ -2,7 +2,7 @@
 % Please edit documentation in R/download.FACE.R
 \name{download.FACE}
 \alias{download.FACE}
-\title{download.FACE}
+\title{Download Raw FACE data from the internet}
 \usage{
 download.FACE(
   sitename,
@@ -15,8 +15,20 @@ download.FACE(
 )
 }
 \arguments{
-\item{method}{Optional. Passed to download.file() function.  Use this to set custom programs such as ncftp to use when
+\item{sitename}{sitename}
+
+\item{outfolder}{location where output is stored}
+
+\item{start_date}{desired start date YYYY-MM-DD}
+
+\item{end_date}{desired end date YYYY-MM-DD}
+
+\item{overwrite}{overwrite existing files? Default is FALSE}
+
+\item{method}{Optional. Passed to download_file() function.  Use this to set custom programs such as ncftp to use when
 downloading files from FTP sites}
+
+\item{...}{other inputs}
 }
 \description{
 Download Raw FACE data from the internet

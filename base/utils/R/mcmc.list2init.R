@@ -30,7 +30,7 @@ mcmc.list2init <- function(dat) {
   
   ## define variables
   ic <- list()
-  n <- nrow(dat[[1]])
+  nr <- nrow(dat[[1]])
   nc <- coda::nchain(dat)
   for(c in seq_len(nc)) ic[[c]] <- list()
   
@@ -38,7 +38,6 @@ mcmc.list2init <- function(dat) {
     
     ## detect variable type (scalar, vector, matrix)
     cols <- which(firstname == uname[v])
-    
     if(length(cols) == 1){
       ## SCALAR
       for(c in seq_len(nc)){
@@ -66,7 +65,7 @@ mcmc.list2init <- function(dat) {
         }
         
       } else {
-        PEcAn.utils::logger.severe("dimension not supported",dim,uname[v])
+        PEcAn.logger::logger.severe("dimension not supported",dim,uname[v])
       }
       
     }  ## end else VECTOR or MATRIX

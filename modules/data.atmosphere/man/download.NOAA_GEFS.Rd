@@ -14,7 +14,8 @@ download.NOAA_GEFS(
   start_date = Sys.Date(),
   end_date = start_date + lubridate::days(16),
   downscale = TRUE,
-  overwrite = FALSE
+  overwrite = FALSE,
+  ...
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ download.NOAA_GEFS(
 \item{downscale}{logical, assumed True. Indicated whether data should be downscaled to hourly}
 
 \item{overwrite}{logical. Download a fresh version even if a local file with the same name already exists?}
+
+\item{...}{Additional optional parameters}
 }
 \value{
 A list of data frames is returned containing information about the data file that can be used to locate it later.  Each
@@ -48,7 +51,7 @@ Download NOAA GEFS Weather Data
 \section{Information on Units}{
 
 Information on NOAA weather units can be found below. Note that the temperature is measured in degrees C, 
-but is converted at the station and downlaoded in Kelvin.
+but is converted at the station and downloaded in Kelvin.
 }
 
 \section{NOAA_GEFS General Information}{
@@ -70,7 +73,7 @@ back two hours (approximately the amount of time it takes to post the data) to m
 \section{Data Save Format}{
 
 Data is saved in the netcdf format to the specified directory.  File names reflect the precision of the data to the given range of days.
-NOAA.GEFS.willow creek.3.2018-06-08T06:00.2018-06-24T06:00.nc specifies the forecast, using ensemble nubmer 3 at willow creek on
+NOAA.GEFS.willow creek.3.2018-06-08T06:00.2018-06-24T06:00.nc specifies the forecast, using ensemble number 3 at willow creek on
 June 6th, 2018 at 6:00 a.m. to June 24th, 2018 at 6:00 a.m.
 }
 

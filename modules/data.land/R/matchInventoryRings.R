@@ -13,7 +13,7 @@ matchInventoryRings <- function(trees, rings, extractor = "TreeCode", nyears = 3
   ## build tree ring codes
   if (is.list(rings)) {
     ring.file <- rep(names(rings), times = sapply(rings, ncol))
-    rings     <- combine.rwl(rings)
+    rings     <- dplR::combine.rwl(rings)
   }
   ring.ID    <- names(rings)
   id.extract <- function(x) {
@@ -25,7 +25,7 @@ matchInventoryRings <- function(trees, rings, extractor = "TreeCode", nyears = 3
   mch       <- match(tree.ID, ring.ID)
   cored     <- apply(!is.na(trees[, grep("DATE_CORE_COLLECT", names(trees))]), 1, any)
   unmatched <- which(cored & is.na(mch))
-  write.table(tree.ID[unmatched], file = "unmatched.txt")
+  utils::write.table(tree.ID[unmatched], file = "unmatched.txt")
   mch[duplicated(mch)] <- NA  ## if there's multiple stems, match the first
   
   ## combine data into one table

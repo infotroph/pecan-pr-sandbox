@@ -2,7 +2,7 @@
 ##' 
 ##' @section Information on Units:
 ##' Information on NOAA weather units can be found below. Note that the temperature is measured in degrees C, 
-##' but is converted at the station and downlaoded in Kelvin.
+##' but is converted at the station and downloaded in Kelvin.
 ##' @references https://www.ncdc.noaa.gov/crn/measurements.html
 ##' 
 ##' @section NOAA_GEFS General Information:
@@ -19,7 +19,7 @@
 ##' 
 ##' @section Data Save Format:
 ##' Data is saved in the netcdf format to the specified directory.  File names reflect the precision of the data to the given range of days.
-##' NOAA.GEFS.willow creek.3.2018-06-08T06:00.2018-06-24T06:00.nc specifies the forecast, using ensemble nubmer 3 at willow creek on
+##' NOAA.GEFS.willow creek.3.2018-06-08T06:00.2018-06-24T06:00.nc specifies the forecast, using ensemble number 3 at willow creek on
 ##' June 6th, 2018 at 6:00 a.m. to June 24th, 2018 at 6:00 a.m.
 ##' 
 ##' @return A list of data frames is returned containing information about the data file that can be used to locate it later.  Each
@@ -35,6 +35,8 @@
 ##' @param username username from pecan workflow 
 ##' @param overwrite logical. Download a fresh version even if a local file with the same name already exists?
 ##' @param downscale logical, assumed True. Indicated whether data should be downscaled to hourly
+##' @param ...  Additional optional parameters
+##'
 ##' @export
 ##' 
 ##' @examples 
@@ -56,7 +58,8 @@ download.NOAA_GEFS <- function(site_id,
                                start_date= Sys.Date(),
                                end_date = start_date + lubridate::days(16),
                                downscale = TRUE,
-                               overwrite = FALSE){
+                               overwrite = FALSE,
+                               ...){
   
   forecast_date = as.Date(start_date)
   forecast_time = (lubridate::hour(start_date) %/% 6)*6
@@ -73,23 +76,23 @@ download.NOAA_GEFS <- function(site_id,
   
   
   noaa_grid_download(lat_list = lat.in,
-                     lon_list = lon.in,
-                     end_hr = end_hr,
-                     forecast_time = forecast_time,
-                     forecast_date = forecast_date,
-                     model_name_raw = model_name_raw,
-                     output_directory = outfolder)
+                    lon_list = lon.in,
+                    end_hr = end_hr,
+                    forecast_time = forecast_time,
+                    forecast_date = forecast_date,
+                    model_name_raw = model_name_raw,
+                    output_directory = outfolder)
   
   results <- process_gridded_noaa_download(lat_list = lat.in,
-                                           lon_list = lon.in,
-                                           site_id = site_id,
-                                           downscale = downscale,
-                                           overwrite = overwrite,
-                                           forecast_date = forecast_date,
-                                           forecast_time = forecast_time,
-                                           model_name = model_name,
-                                           model_name_ds = model_name_ds,
-                                           model_name_raw = model_name_raw,
-                                           output_directory = outfolder)
+                                          lon_list = lon.in,
+                                          site_id = site_id,
+                                          downscale = downscale,
+                                          overwrite = overwrite,
+                                          forecast_date = forecast_date,
+                                          forecast_time = forecast_time,
+                                          model_name = model_name,
+                                          model_name_ds = model_name_ds,
+                                          model_name_raw = model_name_raw,
+                                          output_directory = outfolder)
   return(results)
 }
