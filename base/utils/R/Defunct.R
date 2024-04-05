@@ -12,6 +12,6 @@ NULL
 #' @usage NULL
 #' @aliases convert.input convert.input-defunct
 #' @export
-convert.input <- function(...){
+convert.input <- function(...) {
   .Defunct("PEcAn.DB::convert_input", package = NULL)
 } # convert.input()

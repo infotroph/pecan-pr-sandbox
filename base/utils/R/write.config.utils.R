@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2012 University of Illinois, NCSA.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the 
+# are made available under the terms of the
 # University of Illinois/NCSA Open Source License
 # which accompanies this distribution, and is available at
 # http://opensource.ncsa.illinois.edu/license.html
@@ -29,7 +29,7 @@ get.quantiles <- function(quantiles.tag) {
     quantiles <- append(quantiles, 1 - stats::pnorm(sigmas))
   }
   if (length(quantiles) == 0) {
-    quantiles <- 1 - stats::pnorm(-3:3)  #default
+    quantiles <- 1 - stats::pnorm(-3:3) # default
   }
   if (!0.5 %in% quantiles) {
     quantiles <- append(quantiles, 0.5)
@@ -78,7 +78,7 @@ get.sa.samples <- function(samples, quantiles) {
   sa.samples <- data.frame()
   for (trait in names(samples)) {
     for (quantile in quantiles) {
-      sa.samples[as.character(round(quantile * 100, 3)), trait] <- 
+      sa.samples[as.character(round(quantile * 100, 3)), trait] <-
         quantile(samples[[trait]], quantile)
     }
   }

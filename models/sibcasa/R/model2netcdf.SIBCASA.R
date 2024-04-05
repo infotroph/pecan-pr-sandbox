@@ -19,7 +19,6 @@
 #'
 #' @author Tony Gardella
 model2netcdf.SIBCASA <- function(outdir, sitelat, sitelon, start_date, end_date) {
-
   ## Get Files
   file_list <- dir(outdir, "hsib", all.files = TRUE)
   years <- sub(".qp2.nc", "", sub("hsib.", "", file_list))

@@ -1,13 +1,13 @@
 #-------------------------------------------------------------------------------
 # Copyright (c) 2012 University of Illinois, NCSA.
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the 
+# are made available under the terms of the
 # University of Illinois/NCSA Open Source License
 # which accompanies this distribution, and is available at
 # http://opensource.ncsa.illinois.edu/license.html
 #-------------------------------------------------------------------------------
 
-##' Sends email. This assumes the program sendmail is installed. 
+##' Sends email. This assumes the program sendmail is installed.
 ##'
 ##' @param from the sender of the mail message
 ##' @param to the receipient of the mail message
@@ -29,13 +29,16 @@ sendmail <- function(from, to, subject, body) {
     }
     sendmail <- Sys.which("sendmail")
     mailfile <- tempfile("mail")
-    cat(paste0("From: ", from, "\n", 
-               "Subject: ", subject, "\n", 
-               "To: ", to, "\n", "\n", 
-               body, "\n"), file = mailfile)
-    system2(sendmail, c("-f", paste0("\"", from, "\""), 
-                        paste0("\"", to, "\""), "<", mailfile))
+    cat(paste0(
+      "From: ", from, "\n",
+      "Subject: ", subject, "\n",
+      "To: ", to, "\n", "\n",
+      body, "\n"
+    ), file = mailfile)
+    system2(sendmail, c(
+      "-f", paste0("\"", from, "\""),
+      paste0("\"", to, "\""), "<", mailfile
+    ))
     unlink(mailfile)
   }
 } # sendmail
-

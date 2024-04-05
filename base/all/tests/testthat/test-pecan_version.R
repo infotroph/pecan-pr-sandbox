@@ -1,5 +1,4 @@
 test_that("pecan_version", {
-
   # defunct packages only shown when requesting versions that contained them
   expect_true("PEcAn.dalec" %in% pecan_version("v1.3.5")$package)
   expect_false("PEcAn.dalec" %in% pecan_version("v1.7.2")$package)
@@ -54,34 +53,34 @@ test_that("pecan_version", {
   expect_true(
     any(
       noargs[noargs$package == "PEcAn.all", ]$installed ==
-      packageVersion("PEcAn.all")
+        packageVersion("PEcAn.all")
     )
   )
   expect_true(
     any(
       noargs[noargs$package == "PEcAn.all", expected_tag] ==
-      PEcAn.all::pecan_version_history[
-        PEcAn.all::pecan_version_history$package == "PEcAn.all",
-        expected_tag
-      ]
+        PEcAn.all::pecan_version_history[
+          PEcAn.all::pecan_version_history$package == "PEcAn.all",
+          expected_tag
+        ]
     )
   )
 })
 
 
 test_that("pecan_version without sessioninfo", {
-
   with_sessinfo <- pecan_version()
 
   # make pecan_version think the sessioninfo package is unavailable
-  mockery::stub(pecan_version, 'requireNamespace', FALSE)
+  mockery::stub(pecan_version, "requireNamespace", FALSE)
   without_sessinfo <- pecan_version()
 
   expect_length(with_sessinfo, 4)
   expect_length(without_sessinfo, 3)
   expect_equal(
     with_sessinfo[, colnames(with_sessinfo) != "source"],
-    without_sessinfo)
+    without_sessinfo
+  )
 })
 
 # TODO: Would be nice to add a check here that will notice if the list of PEcAn
