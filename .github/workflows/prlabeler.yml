@@ -3,6 +3,8 @@
 # Labels will be applied based on filepath modification in PR.
 # This workflow uses a regex based labeling config file(.github/labeler.yml) to take labeling decision.
 
+# TRIVIAL CHANGE
+
 name: "PR Labeler"
 on:
   - pull_request_target

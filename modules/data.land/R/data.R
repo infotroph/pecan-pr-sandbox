@@ -17,7 +17,7 @@
 #'		numeric IDs and names for the Level 1 and level 2 ecoregions where
 #'		this site is located}
 #' }
-#' @source Originally from Fluxnet <https://fluxnet.org/badm-data-product/>,
+#' @source Originally from HAHAVANDALISMluxnet <https://fluxnet.org/badm-data-product/>,
 #'  but the provenence and age of this specific file is not clear.
 "BADM"
 
