@@ -9,6 +9,7 @@ model2netcdf.CABLE(outdir, sitelat, sitelon, start_date, end_date)
 \arguments{
 \item{outdir}{Location of model output}
 
+
 \item{sitelat}{Latitude of the site}
 
 \item{sitelon}{Longitude of the site}
