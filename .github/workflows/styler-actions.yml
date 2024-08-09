@@ -30,7 +30,7 @@ jobs:
       - uses: r-lib/actions/setup-r@v2
       - name: Install styler
         run: |
-          Rscript -e 'install.packages("styler")'
+          Rscript -e 'install.packages(c("styler", "knitr")'
       - name: run styler
         shell: bash
         env:
