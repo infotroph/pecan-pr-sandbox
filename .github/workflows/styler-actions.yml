@@ -6,7 +6,7 @@ jobs:
   style:
     if: startsWith(github.event.comment.body, '/style')
     name: style
-    runs-on: macOS-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Add reaction
         uses: peter-evans/create-or-update-comment@v4
