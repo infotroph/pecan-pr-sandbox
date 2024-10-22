@@ -23,22 +23,33 @@ on:
           - 4.4
           - devel
 
-# set up the environment, either input or default
-env:
-  R_VERSION: ${{ github.event.inputs.r_version || '4.1' }}
 
-# there are 3 jobs to build different images
 jobs:
+  # ----------------------------------------------------------------------
+  # Set R version.
+  # This is a hack: We really just want a global env var here, but it seems
+  # `env:` values can't be passed into a `jobs.<jobid>.with` context
+  # (see https://github.com/actions/runner/issues/2372).
+  # As an ugly workaround, we assign it to a job output instead.
+  # ----------------------------------------------------------------------
+  rversion:
+    runs-on: ubuntu-latest
+    steps:
+       - run: echo "null"
+    outputs:
+      R_VERSION: ${{ github.event.inputs.r_version || '4.1' }}
+
   # ----------------------------------------------------------------------
   # depends image has all the dependencies installed
   # ----------------------------------------------------------------------
   depends:
+    needs: rversion
     uses: ./.github/workflows/docker-build-image.yml
     with:
       image-name: depends
       build-context: docker/depends
       dockerfile-path: docker/depends/Dockerfile
-      R-version: ${{ env.R_VERSION }}
+      R-version: ${{ needs.rversion.outputs.R_VERSION }}
       platforms: "linux/amd64"
     secrets: inherit
 
@@ -46,13 +57,13 @@ jobs:
   # base image has PEcAn compiled and installed, and depends on depends
   # ----------------------------------------------------------------------
   base:
-    needs: depends
+    needs: [rversion, depends]
     uses: ./.github/workflows/docker-build-image.yml
     with:
       image-name: base
       build-context: .
       dockerfile-path: docker/base/Dockerfile
-      R-version: ${{ env.R_VERSION }}
+      R-version: ${{ needs.rversion.outputs.R_VERSION }}
       from-image: depends
       platforms: "linux/amd64"
     secrets: inherit
@@ -61,13 +72,13 @@ jobs:
 # models image has some python installed to run models, depends on base
 # ----------------------------------------------------------------------
   models:
-    needs: base
+    needs: [rversion, base]
     uses: ./.github/workflows/docker-build-image.yml
     with:
       image-name: models
       build-context: docker/models
       dockerfile-path: docker/models/Dockerfile
-      R-version: ${{ env.R_VERSION }}
+      R-version: ${{ needs.rversion.outputs.R_VERSION }}
       from-image: depends # TODO is this correct? Dockerfile hardcodes FROM pecan/base
     secrets: inherit
 
@@ -75,7 +86,7 @@ jobs:
 # Next are images that have models installed
 # ----------------------------------------------------------------------
   modelsbinary:
-    needs: models    
+    needs: [rversion, models]
     strategy:
       fail-fast: false
       matrix:
@@ -128,7 +139,7 @@ jobs:
       image-name: model-${{ matrix.MODEL }}-${{ matrix.VERSION }}
       build-context: ${{ matrix.CONTEXT }}
       dockerfile-path: ${{ matrix.DOCKERFILE }}
-      R-version: ${{ env.R_VERSION }}
+      R-version: ${{ needs.rversion.outputs.R_VERSION }}
       # no `from-image:` needed here -- it's hardcoded as `FROM pecan/models` in the Dockerfiles
       model-version: ${{ matrix.VERSION }}
       platforms: ${{ matrix.PLATFORM }}
@@ -138,7 +149,7 @@ jobs:
   # Next are images that depend on base image
   # ----------------------------------------------------------------------
   baseplus:
-    needs: base
+    needs: [rversion, base]
     strategy:
       fail-fast: false
       matrix:
@@ -167,7 +178,7 @@ jobs:
       image-name: ${{ matrix.IMAGE }}
       build-context: ${{ matrix.CONTEXT }}
       dockerfile-path: ${{ matrix.DOCKERFILE }}
-      R-version: ${{ env.R_VERSION }}
+      R-version: ${{ needs.rversion.outputs.R_VERSION }}
       platforms: ${{ matrix.PLATFORM }}
     secrets: inherit
 
@@ -175,6 +186,7 @@ jobs:
   # Next are images that do not depend on either depends or base image
   # ----------------------------------------------------------------------
   extras:
+    needs: rversion
     strategy:
       fail-fast: false
       matrix:
@@ -216,4 +228,4 @@ jobs:
       build-context: ${{ matrix.CONTEXT }}
       dockerfile-path: ${{ matrix.DOCKERFILE }}
       platforms: ${{ matrix.PLATFORM }}
-      R-version: ${{ env.R_VERSION }}
+      R-version: ${{ needs.rversion.outputs.R_VERSION }}

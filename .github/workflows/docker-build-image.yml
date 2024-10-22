@@ -28,9 +28,6 @@ on:
         default: "linux/amd64"
         type: string
 
-# TODO Will we need an `env:` here?
-# docker.yml used it only for R_VERSION, now passed in as an input
-
 jobs:
  build:
     runs-on: ubuntu-latest
