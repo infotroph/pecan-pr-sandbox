@@ -40,6 +40,24 @@ jobs:
         id: name
         run: echo "image_name=$(echo ${{ inputs.image-name }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
+      - name: set FROM_IMAGE only if specified
+        id: from
+        shell: bash
+        run: |
+          echo "FROM_IMAGE_IF_SET=$(
+            [[ -n ${{ inputs.from-image }} ]] &&
+            echo 'FROM_IMAGE='${{ inputs.from-image }}
+            )" >> $GITHUB_OUTPUT
+
+      - name: set MODEL_VERSION only if specified
+        id: modelver
+        shell: bash
+        run: |
+          echo "MODEL_VERSION_IF_SET=$(
+            [[ -n ${{ inputs.model-version }} ]] &&
+            echo 'MODEL_VERSION='${{ inputs.model-version }}
+            )" >> $GITHUB_OUTPUT
+
       - uses: actions/checkout@v4
 
       # create metadata for image
@@ -106,12 +124,12 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             VERSION=${{ steps.meta.outputs.version }}
-            R_VERSION=${{ inputs.R-version }}
-            FROM_IMAGE=${{ inputs.from-image }}
             IMAGE_VERSION=${{ steps.meta.outputs.version }}
-            MODEL_VERSION=${{ inputs.model-version }}
-            GITHUB_PAT=${{ secrets.GITHUB_TOKEN }}
             PECAN_VERSION=${{ steps.meta.outputs.version }}
+            R_VERSION=${{ inputs.R-version }}
+            ${{ steps.from.outputs.FROM_IMAGE_IF_SET }}
+            ${{ steps.modelver.outputs.MODEL_VERSION_IF_SET }}
+            GITHUB_PAT=${{ secrets.GITHUB_TOKEN }}
             PECAN_GIT_BRANCH= ${{ github.head_ref || github.ref_name }}
             PECAN_GIT_CHECKSUM=${{ github.sha }}
             PECAN_GIT_DATE=${{ github.event.repository.updated_at }}
