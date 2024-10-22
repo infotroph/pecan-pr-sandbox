@@ -45,8 +45,8 @@ jobs:
         shell: bash
         run: |
           echo "FROM_IMAGE_IF_SET=$(
-            [[ -n ${{ inputs.from-image }} ]] &&
-            echo 'FROM_IMAGE='${{ inputs.from-image }}
+            [[ -n '${{ inputs.from-image }}' ]] &&
+            echo 'FROM_IMAGE=${{ inputs.from-image }}'
             )" >> $GITHUB_OUTPUT
 
       - name: set MODEL_VERSION only if specified
@@ -54,8 +54,8 @@ jobs:
         shell: bash
         run: |
           echo "MODEL_VERSION_IF_SET=$(
-            [[ -n ${{ inputs.model-version }} ]] &&
-            echo 'MODEL_VERSION='${{ inputs.model-version }}
+            [[ -n '${{ inputs.model-version }}' ]] &&
+            echo 'MODEL_VERSION=${{ inputs.model-version }}'
             )" >> $GITHUB_OUTPUT
 
       - uses: actions/checkout@v4
