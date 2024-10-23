@@ -130,6 +130,6 @@ jobs:
             ${{ steps.from.outputs.FROM_IMAGE_IF_SET }}
             ${{ steps.modelver.outputs.MODEL_VERSION_IF_SET }}
             GITHUB_PAT=${{ secrets.GITHUB_TOKEN }}
-            PECAN_GIT_BRANCH= ${{ github.head_ref || github.ref_name }}
+            PECAN_GIT_BRANCH=${{ github.head_ref || github.ref_name }}
             PECAN_GIT_CHECKSUM=${{ github.sha }}
             PECAN_GIT_DATE=${{ github.event.repository.updated_at }}
