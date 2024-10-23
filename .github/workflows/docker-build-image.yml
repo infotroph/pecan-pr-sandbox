@@ -9,10 +9,10 @@ on:
       build-context:
         required: true
         type: string
-      dockerfile-path:
+      dockerfile:
         required: true
         type: string
-      R-version:
+      r-version:
         required: true
         type: string
       from-image:
@@ -113,7 +113,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ${{ inputs.build-context }}
-          file: ${{ inputs.dockerfile-path }}
+          file: ${{ inputs.dockerfile }}
           push: true
           platforms: ${{ inputs.platforms }}
           # cache-from: type=registry,ref=pecan/${{ steps.name.outputs.image_name }}:buildcache
@@ -126,7 +126,7 @@ jobs:
             VERSION=${{ steps.meta.outputs.version }}
             IMAGE_VERSION=${{ steps.meta.outputs.version }}
             PECAN_VERSION=${{ steps.meta.outputs.version }}
-            R_VERSION=${{ inputs.R-version }}
+            R_VERSION=${{ inputs.r-version }}
             ${{ steps.from.outputs.FROM_IMAGE_IF_SET }}
             ${{ steps.modelver.outputs.MODEL_VERSION_IF_SET }}
             GITHUB_PAT=${{ secrets.GITHUB_TOKEN }}

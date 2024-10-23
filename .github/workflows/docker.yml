@@ -48,8 +48,8 @@ jobs:
     with:
       image-name: depends
       build-context: docker/depends
-      dockerfile-path: docker/depends/Dockerfile
-      R-version: ${{ needs.rversion.outputs.R_VERSION }}
+      dockerfile: docker/depends/Dockerfile
+      r-version: ${{ needs.rversion.outputs.R_VERSION }}
       platforms: "linux/amd64"
     secrets: inherit
 
@@ -62,8 +62,8 @@ jobs:
     with:
       image-name: base
       build-context: .
-      dockerfile-path: docker/base/Dockerfile
-      R-version: ${{ needs.rversion.outputs.R_VERSION }}
+      dockerfile: docker/base/Dockerfile
+      r-version: ${{ needs.rversion.outputs.R_VERSION }}
       from-image: depends
       platforms: "linux/amd64"
     secrets: inherit
@@ -77,8 +77,8 @@ jobs:
     with:
       image-name: models
       build-context: docker/models
-      dockerfile-path: docker/models/Dockerfile
-      R-version: ${{ needs.rversion.outputs.R_VERSION }}
+      dockerfile: docker/models/Dockerfile
+      r-version: ${{ needs.rversion.outputs.R_VERSION }}
       from-image: depends # TODO is this correct? Dockerfile hardcodes FROM pecan/base
     secrets: inherit
 
@@ -138,8 +138,8 @@ jobs:
     with:
       image-name: model-${{ matrix.MODEL }}-${{ matrix.VERSION }}
       build-context: ${{ matrix.CONTEXT }}
-      dockerfile-path: ${{ matrix.DOCKERFILE }}
-      R-version: ${{ needs.rversion.outputs.R_VERSION }}
+      dockerfile: ${{ matrix.DOCKERFILE }}
+      r-version: ${{ needs.rversion.outputs.R_VERSION }}
       # no `from-image:` needed here -- it's hardcoded as `FROM pecan/models` in the Dockerfiles
       model-version: ${{ matrix.VERSION }}
       platforms: ${{ matrix.PLATFORM }}
@@ -174,8 +174,8 @@ jobs:
     with:
       image-name: ${{ matrix.name }}
       build-context: ${{ matrix.CONTEXT }}
-      dockerfile-path: ${{ matrix.DOCKERFILE }}
-      R-version: ${{ needs.rversion.outputs.R_VERSION }}
+      dockerfile: ${{ matrix.DOCKERFILE }}
+      r-version: ${{ needs.rversion.outputs.R_VERSION }}
       platforms: ${{ matrix.PLATFORM }}
     secrets: inherit
 
@@ -218,6 +218,6 @@ jobs:
     with:
       image-name: ${{ matrix.name }}
       build-context: ${{ matrix.CONTEXT }}
-      dockerfile-path: ${{ matrix.DOCKERFILE }}
+      dockerfile: ${{ matrix.DOCKERFILE }}
       platforms: ${{ matrix.PLATFORM }}
-      R-version: ${{ needs.rversion.outputs.R_VERSION }}
+      r-version: ${{ needs.rversion.outputs.R_VERSION }}
