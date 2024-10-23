@@ -162,20 +162,17 @@ jobs:
             CONTEXT: .
             DOCKERFILE: docker/docs/Dockerfile
             PLATFORM: "linux/amd64"
-            IMAGE: docs
           - name: executor
             CONTEXT: docker/executor
             DOCKERFILE: docker/executor/Dockerfile
             PLATFORM: "linux/amd64"
-            IMAGE: executor
           - name: api
             CONTEXT: apps/api
             DOCKERFILE: apps/api/Dockerfile
             PLATFORM: "linux/amd64"
-            IMAGE: api
     uses: ./.github/workflows/docker-build-image.yml
     with:
-      image-name: ${{ matrix.IMAGE }}
+      image-name: ${{ matrix.name }}
       build-context: ${{ matrix.CONTEXT }}
       dockerfile-path: ${{ matrix.DOCKERFILE }}
       R-version: ${{ needs.rversion.outputs.R_VERSION }}
@@ -192,7 +189,7 @@ jobs:
       matrix:
         name:
           - web
-          - dbsync
+          - shiny-dbsync
           - data
           - monitor
           - rstudio-nginx
@@ -201,30 +198,25 @@ jobs:
             CONTEXT: .
             DOCKERFILE: docker/web/Dockerfile
             PLATFORM: "linux/amd64,linux/arm64"
-            IMAGE: web
-          - name: dbsync
+          - name: shiny-dbsync
             CONTEXT: .
             DOCKERFILE: shiny/dbsync/Dockerfile
             PLATFORM: "linux/amd64"
-            IMAGE: shiny-dbsync
           - name: data
             CONTEXT: docker/data
             DOCKERFILE: docker/data/Dockerfile
             PLATFORM: "linux/amd64,linux/arm64"
-            IMAGE: data
           - name: monitor
             CONTEXT: docker/monitor
             DOCKERFILE: docker/monitor/Dockerfile
             PLATFORM: "linux/amd64,linux/arm64"
-            IMAGE: monitor
           - name: rstudio-nginx
             CONTEXT: docker/rstudio-nginx
             DOCKERFILE: docker/rstudio-nginx/Dockerfile
             PLATFORM: "linux/amd64,linux/arm64"
-            IMAGE: rstudio-nginx
     uses: ./.github/workflows/docker-build-image.yml
     with:
-      image-name: ${{ matrix.IMAGE }}
+      image-name: ${{ matrix.name }}
       build-context: ${{ matrix.CONTEXT }}
       dockerfile-path: ${{ matrix.DOCKERFILE }}
       platforms: ${{ matrix.PLATFORM }}
