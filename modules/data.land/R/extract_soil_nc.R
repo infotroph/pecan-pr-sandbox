@@ -1,17 +1,25 @@
 #' Extract soil data from gssurgo
-#' @details This function takes a single lat/lon point and creates a spatial grid 
-#' around it for sampling soil variability. The grid_size parameter determines 
-#' how many grid points (grid_size x grid_size) are created around the center point.
+#'
+#' Samples soil variabity within an area specified either as a radius around a
+#' single lat/lon point OR as a spatial polygon.
+#'
+#' The samples are drawn from all soil types present in the area of interest,
+#' as determined by the gSSURGO soil map at 30 meter pixel resolution.
+#' Each soil component is sampled proportionally to its prevalence in the AOI,
+#' with the restriction that each soil type is sampled at least once.
+#' Note especially that this means sites with multiple soil types will always
+#' have multiple output files, **even when** `size = 1`.
 #'
 #' @param outdir Output directory for writing down the netcdf file
 #' @param lat Latitude of center point (single numeric value)
-#' @param lon Longitude of center point (single numeric value) 
+#' @param lon Longitude of center point (single numeric value)
+#' @param aoi Spatial polygon defining area of interest.
+#'  When this is specified, all three of `lat`, `lon`, and `radius` are ignored
 #' @param size Ensemble size
-#' @param grid_size Size of the spatial sampling grid around the center point (default: 3)
-#' @param grid_spacing Spacing between grid cells in meters (default: 100)
-#' @param depths Standard set of soil depths in m to create the ensemble of soil profiles with.
+#' @param radius distance in meters to sample around center point
+#' @param depths depths in m of boundaries between soil layers
 #'
-#' @return It returns the address for the generated soil netcdf file
+#' @return list of paths to the generated soil netcdf files
 #'
 #' @importFrom rlang .data
 #' @examples
@@ -24,23 +32,17 @@
 #' @author Hamze Dokoohaki, Akash
 #' @export
 #'  
-extract_soil_gssurgo <- function(outdir, lat, lon, size=1, grid_size=3, grid_spacing=100, depths=c(0.15,0.30,0.60)){
+extract_soil_gssurgo <- function(outdir,
+                                 lat, lon, aoi = NULL,
+                                 size = 1, radius = 500,
+                                 depths = c(0.15, 0.30, 0.60)) {
+  if (missing(aoi)) {
+    aoi <- data.frame(lon = lon, lat = lat) |>
+      terra::vect(crs = "epsg:4326") |>
+      terra::buffer(radius)
+  }
+
   all.soil.ens <- list()
-  
-  # create spatial bounding box
-  half_extent_m <- (grid_size - 1) / 2 * grid_spacing
-  lat_offset <- half_extent_m / 111000
-  lon_offset <- half_extent_m / (111000 * cos(lat * pi / 180))
-  
-  bbox <- sf::st_bbox(
-    c(xmin = lon - lon_offset, 
-      xmax = lon + lon_offset,
-      ymin = lat - lat_offset, 
-      ymax = lat + lat_offset),
-    crs = sf::st_crs(4326)
-  )
-  aoi <- sf::st_as_sfc(bbox)
-  
   PEcAn.logger::logger.info("Querying gSSURGO Web Coverage Service for map unit keys")
   mu_raster <- soilDB::mukey.wcs(aoi = aoi, db = 'gSSURGO', res = 30)
   
