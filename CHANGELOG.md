@@ -1,9 +1,10 @@
 # Change Log
+
 All notable changes are kept in this file. All changes made should be added to the section called
 `Unreleased`. Once a new release is made this file will be updated to create a new `Unreleased`
 section for the next release.
 
-	For more information about this file see also [Keep a Changelog](http://keepachangelog.com/) .
+For more information about this file see also [Keep a Changelog](http://keepachangelog.com/) .
 
 ## Unreleased
 
@@ -15,6 +16,9 @@ section for the next release.
 - Added `AmeriFlux_met_ensemble()` function with ERA5 fallback for AmeriFlux meteorological data processing and ensemble generation
 - Added `all_site_nc_merge_by_year()` and `single_site_nc_merge()` functions to merge netCDF files across ensembles and sites from pecan model netCDF outputs.
 - Added parallel mode for the entire SDA workflow.
+- Define, add support for, and parse events schema
+  - Events schema and validate_events() function to PEcAn.data.land (#3623, #3521)
+  - Add `write.events.SIPNET()` to generate SIPNET `events.in` files from a `events.json` file.
 - Included all relevant carbon pools (`ROOT_BIOMASS`, `AG_BIOMASS`, `SOIL_STOCK`, `LIT_BIOMASS`) in BADM-based IC extraction; excluded non-pool variables like `SOIL_CHEM`.
 - Added explicit support for `LIT_BIOMASS` to fully utilize **BADM** biomass capabilities.
 - Added `test-IC_BADM_Utilities.R` to validate BADM initial condition extraction and processing
@@ -39,10 +43,14 @@ section for the next release.
 
 ### Changed
 
+- Ensemble and sensitivity analyses now assign an ensemble ID if one is not specified in the XML, even when running with no DB (#3654).
 - `download.ERA5_cds` now uses the R package ecmwfr (replacing python dependency of cdsapi via reticulate), enabling direct NetCDF downloads; and made flexible for both reanalysis and ensemble data product.
 - `extract_soil_gssurgo` now supports spatial sampling using a grid of user-defined size and spacing. And supports ensemble simulation of soil organic carbon (SOC) stocks, using area-weighted aggregation
 - The ERA5 NC extraction function can now handle multi-site instead of one
 - All of the `met2model.*` functions no longer write a list of variables (`*.nc.var`) file alongside each output netcdf. If you need var files, use `PEcAn.utils::nc_write_vars()` after the run completes (#3611, #3616).
+- Refactor `convert_input` to Perform tasks via helper function. Subtask of [#3307](https://github.com/PecanProject/pecan/issues/3307)
+- Stopped testing on R 4.1, started testing on R 4.5, and updated prebuilt Docker images to match -- they are now available for R releases 4.2 through 4.5 as well as for R under development.
+- `write.config.STICS()` now modifies parameters with vectors rather than individually.
 
 
 
