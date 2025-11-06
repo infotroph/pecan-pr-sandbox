@@ -57,6 +57,30 @@ extract_soil_gssurgo <- function(outdir, lat, lon, size=1, grid_size=3, grid_spa
   # Get soil properties using soilDB
   depths_cm <- depths * 100
   all_soil_data <- list()
+
+  # Use fetchSDA instead of get_SDA_property to obtain complete rock fragment data
+  # get_SDA_property only provides frag3to10_r and fraggt10_r
+  # but fetchSDA returns fragvol_r which represents TOTAL rock fragment volume including
+  # all size classes: 2-75mm (pebbles), 75-250mm (cobbles), 250-600mm (stones), and >600mm (boulders).
+  # plus component weighting needed for aggregation
+  sda_data <- tryCatch({
+    soilDB::fetchSDA(
+      WHERE = paste0("mukey IN (", paste(mukeys_all, collapse = ","), ")"),
+      duplicates = TRUE,
+      childs = TRUE,
+      nullFragsAreZero = TRUE,
+      rmHzErrors = TRUE
+    )
+  }, error = function(e) {
+    PEcAn.logger::logger.warn(paste("Failed to fetch SDA data:", e$message))
+    return(NULL)
+  })
+  if (!is.null(sda_data)) {
+    # extract horizon and site data
+    hz_data <- aqp::horizons(sda_data)
+    site_data <- aqp::site(sda_data)
+  }
+
   
   for (i in seq_along(depths_cm)) {
     if (i == 1) {
@@ -81,30 +105,8 @@ extract_soil_gssurgo <- function(outdir, lat, lon, size=1, grid_size=3, grid_spa
       PEcAn.logger::logger.error(paste("Failed to get SDA properties:", e$message))
       return(NULL)
     })
-    
-    # Use fetchSDA instead of get_SDA_property to obtain complete rock fragment data
-    # get_SDA_property only provides frag3to10_r and fraggt10_r 
-    # but fetchSDA returns fragvol_r which represents TOTAL rock fragment volume including
-    # all size classes: 2-75mm (pebbles), 75-250mm (cobbles), 250-600mm (stones), and >600mm (boulders).
-    # plus component weighting needed for aggregation 
-    sda_data <- tryCatch({
-      soilDB::fetchSDA(
-        WHERE = paste0("mukey IN (", paste(mukeys_all, collapse = ","), ")"),
-        duplicates = TRUE,
-        childs = TRUE,
-        nullFragsAreZero = TRUE,
-        rmHzErrors = TRUE
-      )
-    }, error = function(e) {
-      PEcAn.logger::logger.warn(paste("Failed to fetch SDA data:", e$message))
-      return(NULL)
-    })
-    
-    if (!is.null(sda_data)) {
-      # extract horizon and site data
-      hz_data <- aqp::horizons(sda_data)
-      site_data <- aqp::site(sda_data)
-      
+
+    if (!is.null(hz_data) && !is.null(site_data)) {
       fragment_data <- hz_data %>%
         dplyr::left_join(site_data[, c("cokey", "comppct_r", "mukey")], by = "cokey") %>%
         dplyr::filter(hzdept_r < bottom_depth & hzdepb_r > top_depth) %>%
