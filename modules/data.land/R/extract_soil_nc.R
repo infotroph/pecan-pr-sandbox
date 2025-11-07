@@ -22,6 +22,7 @@
 #' @return list of paths to the generated soil netcdf files
 #'
 #' @importFrom rlang .data
+#' @importFrom dplyr %>%
 #' @examples
 #' \dontrun{
 #'    outdir  <- "~/paleon/envTest"
@@ -31,7 +32,7 @@
 #' }
 #' @author Hamze Dokoohaki, Akash
 #' @export
-#'  
+#'
 extract_soil_gssurgo <- function(outdir,
                                  lat, lon, aoi = NULL,
                                  size = 1, radius = 500,
@@ -44,8 +45,8 @@ extract_soil_gssurgo <- function(outdir,
 
   all.soil.ens <- list()
   PEcAn.logger::logger.info("Querying gSSURGO Web Coverage Service for map unit keys")
-  mu_raster <- soilDB::mukey.wcs(aoi = aoi, db = 'gSSURGO', res = 30)
-  
+  mu_raster <- soilDB::mukey.wcs(aoi = aoi, db = "gSSURGO", res = 30)
+
   # Extract unique mukeys and their pixel counts for area weighting
   mukey_values <- terra::values(mu_raster)
   mukey_values <- mukey_values[!is.na(mukey_values)]
@@ -74,7 +75,7 @@ extract_soil_gssurgo <- function(outdir,
       rmHzErrors = TRUE
     )
   }, error = function(e) {
-    PEcAn.logger::logger.warn(paste("Failed to fetch SDA data:", e$message))
+    PEcAn.logger::logger.error("Failed to fetch soil horizon data:", e$message)
     return(NULL)
   })
   if (!is.null(sda_data)) {
@@ -152,16 +153,15 @@ extract_soil_gssurgo <- function(outdir,
     }
     
     all_soil_data[[i]] <- depth_data
-    # Loop continues to next depth layer regardless
   }
-  
+
   # Transform to match original code format
   soilprop <- do.call(rbind, all_soil_data)
-  
+
   soilprop.new <- soilprop %>%
     dplyr::select(
       fraction_of_sand_in_soil = "sandtotal_r",
-      fraction_of_silt_in_soil = "silttotal_r", 
+      fraction_of_silt_in_soil = "silttotal_r",
       fraction_of_clay_in_soil = "claytotal_r",
       soil_depth = "hzdept_r",
       soil_depth_bottom = "hzdepb_r",
@@ -171,7 +171,7 @@ extract_soil_gssurgo <- function(outdir,
       mukey = "mukey"
     ) %>%
     dplyr::mutate(
-      dplyr::across(c(dplyr::starts_with("fraction_of"), "coarse_fragment_pct"), 
+      dplyr::across(c(dplyr::starts_with("fraction_of"), "coarse_fragment_pct"),
                     ~ . / 100),
       horizon_thickness_cm = .data$soil_depth_bottom - .data$soil_depth,
       soil_organic_carbon_stock = PEcAn.data.land::soc2ocs(
@@ -182,13 +182,13 @@ extract_soil_gssurgo <- function(outdir,
       )
     ) %>%
     dplyr::filter(stats::complete.cases(.))
-  
-  if(nrow(soilprop.new) == 0) {
+
+  if (nrow(soilprop.new) == 0) {
     PEcAn.logger::logger.error("No valid soil properties after filtering")
     return(NULL)
-  } 
-  
-  if(!dir.exists(outdir)) dir.create(outdir, recursive = TRUE)
+  }
+
+  if (!dir.exists(outdir)) dir.create(outdir, recursive = TRUE)
 
   soil.data.gssurgo <- list(
     fraction_of_sand_in_soil = soilprop.new$fraction_of_sand_in_soil,
@@ -197,28 +197,28 @@ extract_soil_gssurgo <- function(outdir,
     soil_depth = soilprop.new$soil_depth,
     soil_organic_carbon_stock = soilprop.new$soil_organic_carbon_stock
   )
-  
+
   all.soil.ens <- c(all.soil.ens, list(soil.data.gssurgo))
-  
+
   # Generate modeled ensembles
   tryCatch({
     # Adjust depth levels if needed
     if (max(soilprop.new$soil_depth_bottom) > max(depths_cm)) {
       depths_cm <- sort(c(depths_cm, max(soilprop.new$soil_depth)))
     }
-    
+
     depth.levs <- findInterval(soilprop.new$soil_depth_bottom, depths_cm)
     depth.levs[depth.levs == 0] <- 1
     depth.levs[depth.levs > length(depths_cm)] <- length(depths_cm)
-    
+
     # Remove any NA depth levels
     valid_indices <- !is.na(depth.levs)
     if(sum(!valid_indices) > 0) {
       soilprop.new <- soilprop.new[valid_indices, ]
       depth.levs <- depth.levs[valid_indices]
     }
-    
-    soilprop.new.grouped <- soilprop.new %>% 
+
+    soilprop.new.grouped <- soilprop.new %>%
       dplyr::mutate(DepthL = depths_cm[depth.levs])
     
     # Dirichlet modeling per mukey
@@ -230,26 +230,26 @@ extract_soil_gssurgo <- function(outdir,
                                          "fraction_of_silt_in_soil",
                                          "fraction_of_clay_in_soil")] %>% 
             as.matrix()
-          
-          if(nrow(texture_data) == 0) return(NULL)
-          
+
+          if (nrow(texture_data) == 0) return(NULL)
+
           dir.model <- sirt::dirichlet.mle(texture_data)
           alpha <- matrix(dir.model$alpha, nrow = size, ncol = length(dir.model$alpha), byrow = TRUE)
           simulated.soil <- sirt::dirichlet.simul(alpha)
-          
+
           # SOC modeling
           soc_mean <- mukey_group$soil_organic_carbon_stock
           soc_sd <- stats::sd(soc_mean, na.rm = TRUE)
           n_depths <- length(soc_mean)
-          
+
           if (n_depths == 1 || is.na(soc_sd) || soc_sd == 0) {
             simulated_soc <- rep(NA_real_, size)
           } else {
-            shape <- (mean(soc_mean, na.rm=TRUE)^2) / (soc_sd^2)
-            rate <- mean(soc_mean, na.rm=TRUE) / (soc_sd^2)
+            shape <- (mean(soc_mean, na.rm = TRUE)^2) / (soc_sd^2)
+            rate <- mean(soc_mean, na.rm = TRUE) / (soc_sd^2)
             simulated_soc <- stats::rgamma(size, shape = shape, rate = rate)
           }
-          
+
           result_df <- data.frame(
             fraction_of_sand_in_soil = simulated.soil[,1],
             fraction_of_silt_in_soil = simulated.soil[,2],
@@ -258,7 +258,7 @@ extract_soil_gssurgo <- function(outdir,
             mukey = unique(mukey_group$mukey),
             soil_organic_carbon_stock = simulated_soc
           )
-          
+
           return(result_df)
         },
         error = function(e) {
@@ -282,31 +282,30 @@ extract_soil_gssurgo <- function(outdir,
         sizein <- mukey_area$Area[mukey_area$mukey == unique(soiltype.sim$mukey)] * size
         
         1:ceiling(sizein) %>%
-          purrr::map(function(x){
-            soiltype.sim %>% 
+          purrr::map(function(x) {
+            soiltype.sim %>%
               split(.$soil_depth) %>%
-              purrr::map_dfr(~.x[x,])
+              purrr::map_dfr(~.x[x, ])
           })
       }) %>%
       purrr::flatten()
-    
+
     # convert profiles to ensemble arrays
     all.soil.ens <- soil.profiles %>%
       purrr::map(function(SEns){
         SEns <- SEns[, names(SEns) != "mukey"]
         names(SEns) %>%
-          purrr::map(function(var){
+          purrr::map(function(var) {
             as.numeric(unlist(SEns[, var]))
           }) %>%
           stats::setNames(names(SEns))
       }) %>%
       c(all.soil.ens, .)
-    
   },
   error = function(e) {
     PEcAn.logger::logger.warn(conditionMessage(e))
   })
-  
+
   # generate NetCDF files
   out.ense <- (1:length(all.soil.ens)) %>%
     purrr::map(function(i) {
@@ -322,15 +321,10 @@ extract_soil_gssurgo <- function(outdir,
         PEcAn.logger::logger.warn(conditionMessage(e))
         return(NULL)
       })
-    })
-  
-  # remove nulls 
-  out.ense <- out.ense %>%
-    purrr::discard(is.null)
-  
-  out.ense <- out.ense %>% 
-    stats::setNames(rep("path", length(out.ense)))
-  
+    }) %>%
+    # remove nulls
+    purrr::discard(is.null) %>%
+    stats::setNames(rep("path", length(.)))
   return(out.ense)
 }
 
