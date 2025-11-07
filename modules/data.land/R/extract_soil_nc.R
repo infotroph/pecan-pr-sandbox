@@ -142,6 +142,7 @@ extract_soil_gssurgo <- function(outdir,
       fraction_of_sand_in_soil = "sandtotal_r",
       fraction_of_silt_in_soil = "silttotal_r",
       fraction_of_clay_in_soil = "claytotal_r",
+      depth_layer = "depth_layer",
       soil_depth = "hzdept_r",
       soil_depth_bottom = "hzdepb_r",
       organic_matter_pct = "om_r",
@@ -183,28 +184,9 @@ extract_soil_gssurgo <- function(outdir,
 
   # Generate modeled ensembles
   tryCatch({
-    # Adjust depth levels if needed
-    if (max(soilprop.new$soil_depth_bottom) > max(depths_cm)) {
-      depths_cm <- sort(c(depths_cm, max(soilprop.new$soil_depth)))
-    }
-
-    depth.levs <- findInterval(soilprop.new$soil_depth_bottom, depths_cm)
-    depth.levs[depth.levs == 0] <- 1
-    depth.levs[depth.levs > length(depths_cm)] <- length(depths_cm)
-
-    # Remove any NA depth levels
-    valid_indices <- !is.na(depth.levs)
-    if(sum(!valid_indices) > 0) {
-      soilprop.new <- soilprop.new[valid_indices, ]
-      depth.levs <- depth.levs[valid_indices]
-    }
-
-    soilprop.new.grouped <- soilprop.new %>%
-      dplyr::mutate(DepthL = depths_cm[depth.levs])
-
     # Dirichlet modeling per component
-    simulated.soil.props <- soilprop.new.grouped %>%
-      split(.$cokey) %>%
+    simulated.soil.props <- soilprop.new %>%
+      split(list(.$cokey, .$depth_layer)) %>%
       purrr::map_df(function(component_group) {
         tryCatch({
           texture_data <- component_group[, c("fraction_of_sand_in_soil",
