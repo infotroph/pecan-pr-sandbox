@@ -89,7 +89,7 @@ extract_soil_gssurgo <- function(outdir,
       .groups = "drop"
     )
 
-  # Get layer-by-layer properties of each component
+  # Get horizon-by-horizon properties of each component
   hz_data <- tryCatch({
     soilDB::get_chorizon_from_SDA(
       paste("c.cokey IN",
@@ -104,9 +104,10 @@ extract_soil_gssurgo <- function(outdir,
     return(NULL)
   })
 
+  # Calculate properties of each requested layer
+  # as the weighted average of all horizons appearing in it
   depths_cm <- depths * 100
   all_soil_data <- list()
-
   for (i in seq_along(depths_cm)) {
     top_depth <- if (i == 1) 0 else depths_cm[i - 1]
     bottom_depth <- depths_cm[i]
@@ -136,7 +137,6 @@ extract_soil_gssurgo <- function(outdir,
 
   # Transform to match original code format
   soilprop <- do.call(rbind, all_soil_data)
-
   soilprop.new <- soilprop %>%
     dplyr::select(
       fraction_of_sand_in_soil = "sandtotal_r",
@@ -150,8 +150,10 @@ extract_soil_gssurgo <- function(outdir,
       cokey = "cokey"
     ) %>%
     dplyr::mutate(
-      dplyr::across(c(dplyr::starts_with("fraction_of"), "coarse_fragment_pct"),
-                    ~ . / 100),
+      dplyr::across(
+        c(dplyr::starts_with("fraction_of"), "coarse_fragment_pct"),
+        ~ . / 100
+      ),
       horizon_thickness_cm = .data$soil_depth_bottom - .data$soil_depth,
       soil_organic_carbon_stock = PEcAn.data.land::soc2ocs(
         soc_percent = PEcAn.data.land::om2soc(.data$organic_matter_pct),
