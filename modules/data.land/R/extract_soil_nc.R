@@ -48,110 +48,89 @@ extract_soil_gssurgo <- function(outdir,
   mu_raster <- soilDB::mukey.wcs(aoi = aoi, db = "gSSURGO", res = 30)
 
   # Extract unique mukeys and their pixel counts for area weighting
-  mukey_values <- terra::values(mu_raster)
-  mukey_values <- mukey_values[!is.na(mukey_values)]
-  mukey_counts <- table(mukey_values)
-  mukeys_all <- as.character(names(mukey_counts))
-  
-  if (length(mukeys_all) == 0) {
+  mu_weights <- mu_raster %>%
+    terra::values(dataframe = TRUE, na.rm = TRUE) %>%
+    table() %>%
+    as.data.frame() %>%
+    dplyr::mutate(
+      mukey = as.character(mukey),
+      mu_wt = .data$Freq / sum(.data$Freq)
+    )
+  if (nrow(mu_weights) == 0) {
     PEcAn.logger::logger.severe("No mapunit keys were found for this site.")
   }
-  
-  # Get soil properties using soilDB
-  depths_cm <- depths * 100
-  all_soil_data <- list()
 
-  # Use fetchSDA instead of get_SDA_property to obtain complete rock fragment data
-  # get_SDA_property only provides frag3to10_r and fraggt10_r
-  # but fetchSDA returns fragvol_r which represents TOTAL rock fragment volume including
-  # all size classes: 2-75mm (pebbles), 75-250mm (cobbles), 250-600mm (stones), and >600mm (boulders).
-  # plus component weighting needed for aggregation
-  sda_data <- tryCatch({
-    soilDB::fetchSDA(
-      WHERE = paste0("mukey IN (", paste(mukeys_all, collapse = ","), ")"),
+  # look up component soils (aka soil types) found in these map units
+  components <-
+    soilDB::get_component_from_SDA(
+      paste("mukey IN", soilDB::format_SQL_in_statement(mu_weights$mukey)),
       duplicates = TRUE,
+      childs = FALSE
+    ) %>%
+    dplyr::select("mukey", "cokey", "comppct_r") %>%
+    dplyr::mutate(dplyr::across(c("mukey", "cokey"), as.character))
+  component_weights <- mu_weights %>%
+    dplyr::left_join(components, by = "mukey") %>%
+    dplyr::mutate(comp_wt = (.data$comppct_r / 100) * .data$mu_wt)
+  if (anyNA(component_weights)) {
+    # This will only(?) happen when no components found for a map unit
+    ok <- stats::complete.cases(component_weights)
+    PEcAn.logger::logger.warn(
+      "Dropping map units with no data found:",
+      sQuote(component_weights$mukey[!ok])
+    )
+    component_weights <- component_weights[ok, ]
+  }
+  component_weights <- component_weights %>%
+    dplyr::group_by(.data$cokey) %>%
+    # consolidate any components that appear in multiple map units
+    dplyr::summarize(
+      comp_wt = sum(.data$comp_wt, na.rm = TRUE),
+      .groups = "drop"
+    )
+
+  # Get layer-by-layer properties of each component
+  hz_data <- tryCatch({
+    soilDB::get_chorizon_from_SDA(
+      paste("c.cokey IN",
+            soilDB::format_SQL_in_statement(component_weights$cokey)),
+      duplicates = FALSE,
       childs = TRUE,
       nullFragsAreZero = TRUE,
-      rmHzErrors = TRUE
+      droplevels = TRUE
     )
   }, error = function(e) {
     PEcAn.logger::logger.error("Failed to fetch soil horizon data:", e$message)
     return(NULL)
   })
-  if (!is.null(sda_data)) {
-    # extract horizon and site data
-    hz_data <- aqp::horizons(sda_data)
-    site_data <- aqp::site(sda_data)
-  }
 
-  
+  depths_cm <- depths * 100
+  all_soil_data <- list()
+
   for (i in seq_along(depths_cm)) {
-    if (i == 1) {
-      top_depth <- 0
-      bottom_depth <- depths_cm[1]
-    } else {
-      top_depth <- depths_cm[i-1]
-      bottom_depth <- depths_cm[i]
-    }
-    
-    # get soil properties per mukey
-    soil_props <- tryCatch({
-      soilDB::get_SDA_property(
-        property = c("sandtotal_r", "silttotal_r", "claytotal_r", "om_r", "dbthirdbar_r"),
-        method = "Weighted Average",
-        mukeys = as.integer(mukeys_all),
-        top_depth = top_depth,
-        bottom_depth = bottom_depth,
-        include_minors = TRUE
-      )
-    }, error = function(e) {
-      PEcAn.logger::logger.error(paste("Failed to get SDA properties:", e$message))
-      return(NULL)
-    })
+    top_depth <- if (i == 1) 0 else depths_cm[i - 1]
+    bottom_depth <- depths_cm[i]
 
-    if (!is.null(hz_data) && !is.null(site_data)) {
-      fragment_data <- hz_data %>%
-        dplyr::left_join(site_data[, c("cokey", "comppct_r", "mukey")], by = "cokey") %>%
-        dplyr::filter(hzdept_r < bottom_depth & hzdepb_r > top_depth) %>%
-        dplyr::mutate(
-          hz_top_adj = pmax(hzdept_r, top_depth),
-          hz_bot_adj = pmin(hzdepb_r, bottom_depth),
-          hz_thickness = hz_bot_adj - hz_top_adj
-        ) %>%
-        dplyr::group_by(mukey) %>%
-        dplyr::summarise(
-          fragvol_r = stats::weighted.mean(
-            fragvol_r, 
-            comppct_r * hz_thickness, 
-            na.rm = TRUE
-          ),
-          .groups = "drop"
-        )
-      
-      # Merge soil properties with fragment data
-      depth_data <- soil_props %>%
-        dplyr::left_join(fragment_data, by = "mukey") %>%
-        dplyr::mutate(
-          depth_layer = depths[i],
-          hzdept_r = top_depth,
-          hzdepb_r = bottom_depth
-        )
-    } else {
-      # Keep other soil data, mark fragments as explicitly missing
-      # complete.cases() will filter these out later
-      PEcAn.logger::logger.info(
-        paste("Fragment data unavailable for depth", top_depth, "-", bottom_depth,
-              "cm. These records will be excluded from final analysis.")
+    depth_data <- hz_data %>%
+      dplyr::filter(.data$hzdept_r < bottom_depth
+                    & .data$hzdepb_r > top_depth) %>%
+      dplyr::mutate(
+        hz_top_adj = pmax(.data$hzdept_r, top_depth),
+        hz_bot_adj = pmin(.data$hzdepb_r, bottom_depth),
+        hz_thickness = .data$hz_bot_adj - .data$hz_top_adj
+      ) %>%
+      dplyr::group_by(.data$cokey) %>%
+      dplyr::summarize(
+        depth_layer = depths[i],
+        hzdept_r = top_depth,
+        hzdepb_r = bottom_depth,
+        dplyr::across(
+          c("sandtotal_r", "silttotal_r", "claytotal_r",
+            "om_r", "dbthirdbar_r", "total_frags_pct"),
+          \(x) stats::weighted.mean(x, .data$hz_thickness, na.rm = TRUE)
+        ),
+        .groups = "drop"
       )
-      depth_data <- soil_props %>%
-        dplyr::mutate(
-          fragvol_r = NA_real_,
-          depth_layer = depths[i],
-          hzdept_r = top_depth,
-          hzdepb_r = bottom_depth
-        )
-    }
-    
     all_soil_data[[i]] <- depth_data
   }
 
@@ -167,8 +146,8 @@ extract_soil_gssurgo <- function(outdir,
       soil_depth_bottom = "hzdepb_r",
       organic_matter_pct = "om_r",
       bulk_density = "dbthirdbar_r",
-      coarse_fragment_pct = "fragvol_r",
-      mukey = "mukey"
+      coarse_fragment_pct = "total_frags_pct",
+      cokey = "cokey"
     ) %>%
     dplyr::mutate(
       dplyr::across(c(dplyr::starts_with("fraction_of"), "coarse_fragment_pct"),
@@ -220,15 +199,15 @@ extract_soil_gssurgo <- function(outdir,
 
     soilprop.new.grouped <- soilprop.new %>%
       dplyr::mutate(DepthL = depths_cm[depth.levs])
-    
-    # Dirichlet modeling per mukey
+
+    # Dirichlet modeling per component
     simulated.soil.props <- soilprop.new.grouped %>%
-      split(.$mukey) %>%
-      purrr::map_df(function(mukey_group) {
+      split(.$cokey) %>%
+      purrr::map_df(function(component_group) {
         tryCatch({
-          texture_data <- mukey_group[,c("fraction_of_sand_in_soil",
-                                         "fraction_of_silt_in_soil",
-                                         "fraction_of_clay_in_soil")] %>% 
+          texture_data <- component_group[, c("fraction_of_sand_in_soil",
+                                              "fraction_of_silt_in_soil",
+                                              "fraction_of_clay_in_soil")] %>%
             as.matrix()
 
           if (nrow(texture_data) == 0) return(NULL)
@@ -238,7 +217,7 @@ extract_soil_gssurgo <- function(outdir,
           simulated.soil <- sirt::dirichlet.simul(alpha)
 
           # SOC modeling
-          soc_mean <- mukey_group$soil_organic_carbon_stock
+          soc_mean <- component_group$soil_organic_carbon_stock
           soc_sd <- stats::sd(soc_mean, na.rm = TRUE)
           n_depths <- length(soc_mean)
 
@@ -251,11 +230,11 @@ extract_soil_gssurgo <- function(outdir,
           }
 
           result_df <- data.frame(
-            fraction_of_sand_in_soil = simulated.soil[,1],
-            fraction_of_silt_in_soil = simulated.soil[,2],
-            fraction_of_clay_in_soil = simulated.soil[,3],
-            soil_depth = mukey_group$soil_depth,
-            mukey = unique(mukey_group$mukey),
+            fraction_of_sand_in_soil = simulated.soil[, 1],
+            fraction_of_silt_in_soil = simulated.soil[, 2],
+            fraction_of_clay_in_soil = simulated.soil[, 3],
+            soil_depth = component_group$soil_depth,
+            cokey = unique(component_group$cokey),
             soil_organic_carbon_stock = simulated_soc
           )
 
@@ -266,21 +245,14 @@ extract_soil_gssurgo <- function(outdir,
           return(NULL)
         })
       })
-    
-    # calculate mukey area
-    mukey_area <- data.frame(
-      mukey = names(mukey_counts),
-      Area = as.numeric(mukey_counts) / sum(mukey_counts)
-    ) %>%
-      dplyr::filter(.data$mukey %in% unique(simulated.soil.props$mukey)) %>%
-      dplyr::mutate(Area = .data$Area / sum(.data$Area, na.rm = TRUE))
-    
+
     # generate weighted profiles
-    soil.profiles <- simulated.soil.props %>% 
-      split(.$mukey) %>%   
-      purrr::map(function(soiltype.sim){
-        sizein <- mukey_area$Area[mukey_area$mukey == unique(soiltype.sim$mukey)] * size
-        
+    soil.profiles <- simulated.soil.props %>%
+      split(.$cokey) %>%
+      purrr::map(function(soiltype.sim) {
+        wt <- component_weights %>%
+          dplyr::filter(.data$cokey == unique(soiltype.sim$cokey))
+        sizein <- wt$comp_wt * size
         1:ceiling(sizein) %>%
           purrr::map(function(x) {
             soiltype.sim %>%
@@ -292,8 +264,8 @@ extract_soil_gssurgo <- function(outdir,
 
     # convert profiles to ensemble arrays
     all.soil.ens <- soil.profiles %>%
-      purrr::map(function(SEns){
-        SEns <- SEns[, names(SEns) != "mukey"]
+      purrr::map(function(SEns) {
+        SEns <- SEns[, names(SEns) != "cokey"]
         names(SEns) %>%
           purrr::map(function(var) {
             as.numeric(unlist(SEns[, var]))

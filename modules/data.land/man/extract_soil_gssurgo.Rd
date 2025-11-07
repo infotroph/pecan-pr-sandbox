@@ -8,9 +8,9 @@ extract_soil_gssurgo(
   outdir,
   lat,
   lon,
+  aoi = NULL,
   size = 1,
-  grid_size = 3,
-  grid_spacing = 100,
+  radius = 500,
   depths = c(0.15, 0.3, 0.6)
 )
 }
@@ -21,24 +21,29 @@ extract_soil_gssurgo(
 
 \item{lon}{Longitude of center point (single numeric value)}
 
+\item{aoi}{Spatial polygon defining area of interest.
+When this is specified, all three of `lat`, `lon`, and `radius` are ignored}
+
 \item{size}{Ensemble size}
 
-\item{grid_size}{Size of the spatial sampling grid around the center point (default: 3)}
+\item{radius}{distance in meters to sample around center point}
 
-\item{grid_spacing}{Spacing between grid cells in meters (default: 100)}
-
-\item{depths}{Standard set of soil depths in m to create the ensemble of soil profiles with.}
+\item{depths}{depths in m of boundaries between soil layers}
 }
 \value{
-It returns the address for the generated soil netcdf file
+list of paths to the generated soil netcdf files
 }
 \description{
-Extract soil data from gssurgo
+Samples soil variabity within an area specified either as a radius around a
+single lat/lon point OR as a spatial polygon.
 }
 \details{
-This function takes a single lat/lon point and creates a spatial grid 
-around it for sampling soil variability. The grid_size parameter determines 
-how many grid points (grid_size x grid_size) are created around the center point.
+The samples are drawn from all soil types present in the area of interest,
+as determined by the gSSURGO soil map at 30 meter pixel resolution.
+Each soil component is sampled proportionally to its prevalence in the AOI,
+with the restriction that each soil type is sampled at least once.
+Note especially that this means sites with multiple soil types will always
+have multiple output files, **even when** `size = 1`.
 }
 \examples{
 \dontrun{
