@@ -230,7 +230,7 @@ jobs:
             DOCKERFILE: docker/web/Dockerfile
             PLATFORM: "linux/amd64,linux/arm64"
           - name: shiny-dbsync
-            CONTEXT: .
+            CONTEXT: shiny/dbsync
             DOCKERFILE: shiny/dbsync/Dockerfile
             PLATFORM: "linux/amd64"
           - name: data
