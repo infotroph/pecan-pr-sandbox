@@ -22,7 +22,7 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - id: file_changes
-        uses: tj-actions/changed-files@v44
+        uses: tj-actions/changed-files@v46
         with:
           files: '**/*.{R, Rmd}'
       - name: list changed files
@@ -75,7 +75,7 @@ jobs:
         working-directory: docker/depends
         run: Rscript pecan.depends.R
       - id: file_changes
-        uses: tj-actions/changed-files@v44
+        uses: tj-actions/changed-files@v46
       - name : make
         shell: bash
         env:
